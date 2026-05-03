@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <base target="_top">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bloomeor POS — Purchases</title>
+    <link rel="icon" type="image/x-icon" href="../images/logo/Bloomeor-logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="../css/styles.css">
+    <script>
+        (function() {
+            const settings = JSON.parse(localStorage.getItem('bloomeor_settings') || '{}');
+            if (settings.appTheme === 'light') {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+    <link rel="manifest" href="../../manifest.json">
+</head>
+<body>
+
+<div id="customAlert"><strong id="alertTitle">Info</strong><p id="alertMsg"></p></div>
+
+<div id="app-layout">
+    <div class="sidebar" id="sidebar">
+        <div class="logo">
+            <img src="../images/logo/Bloomeor-logo.png" alt="Logo" style="max-height:38px;width:auto;filter:drop-shadow(0 0 8px rgba(212,175,55,0.3));" onerror="this.style.display='none';">
+            <span style="margin-left:6px;color:var(--text-primary);font-size:1.5rem;font-weight:700;letter-spacing:-0.05em;">Bloomeor</span>
+        </div>
+        <div class="nav-header">NAVIGATION</div>
+        <div id="navMenu">
+            <a class="nav-link" href="dashboard.html"><i class="ph ph-chart-line-up"></i> Dashboard</a>
+            <a class="nav-link" href="pos.html"><i class="ph ph-cash-register"></i> POS / New Sale</a>
+            <a class="nav-link" href="sales.html"><i class="ph ph-receipt"></i> Sales List</a>
+            <a class="nav-link" href="customers.html"><i class="ph ph-users"></i> Customers</a>
+            <a class="nav-link" href="inventory.html"><i class="ph ph-package"></i> Inventory</a>
+            <a class="nav-link active" href="purchases.html"><i class="ph ph-shopping-cart"></i> Purchases</a>
+            <a class="nav-link" href="suppliers.html"><i class="ph ph-handshake"></i> Suppliers</a>
+            <a class="nav-link" href="payments.html"><i class="ph ph-money"></i> Payments</a>
+            <a class="nav-link" href="expenses.html"><i class="ph ph-file-text"></i> Expenses</a>
+            <a class="nav-link" href="reminders.html"><i class="ph-fill ph-bell" style="color:#EF4444;"></i> Due Reminders</a>
+            <a class="nav-link" href="reports.html"><i class="ph ph-chart-bar"></i> Reports</a>
+            <a class="nav-link" href="settings.html"><i class="ph ph-gear"></i> Settings</a>
+        </div>
+
+        <div class="nav-header" style="margin-top: auto;">SUPPORT</div>
+        <div style="padding: 10px 24px; color: var(--text-muted); font-size: 0.85rem;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                <i class="ph ph-phone" style="color: var(--primary);"></i>
+                <span>9902356539</span>
+            </div>
+            <div style="font-size: 0.7rem; opacity: 0.6;">Customer Care</div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="topbar">
+            <h3 style="color:var(--text-sub)">Purchases</h3>
+            <div style="display:flex;gap:15px;align-items:center;">
+                <span style="font-weight:500;">Admin</span>
+            </div>
+        </div>
+
+        <div class="view-container">
+        <div class="page-view active" style="display:block;animation:none;">
+
+            <!-- Header -->
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+                <div>
+                    <h2 style="font-size:1.75rem;font-weight:700;">Purchase Orders</h2>
+                    <p style="color:var(--text-muted);margin-top:4px;">Record stock-in from suppliers and auto-update inventory.</p>
+                </div>
+                <button class="btn-gold" onclick="openAddModal()">
+                    <i class="ph ph-plus-circle"></i> New Purchase
+                </button>
+            </div>
+
+            <!-- Stats Row -->
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;">
+                <div class="card" style="padding:16px;background:rgba(59,130,246,0.05);border:1px solid rgba(59,130,246,0.2);">
+                    <p style="font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;">Total Purchases</p>
+                    <h3 id="statTotal" style="font-size:1.5rem;margin-top:5px;">₹0</h3>
+                </div>
+                <div class="card" style="padding:16px;background:rgba(16,185,129,0.05);border:1px solid rgba(16,185,129,0.2);">
+                    <p style="font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;">This Month</p>
+                    <h3 id="statMonth" style="font-size:1.5rem;margin-top:5px;color:#10B981;">₹0</h3>
+                </div>
+                <div class="card" style="padding:16px;background:rgba(212,175,55,0.05);border:1px solid rgba(212,175,55,0.2);">
+                    <p style="font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;">Orders Count</p>
+                    <h3 id="statCount" style="font-size:1.5rem;margin-top:5px;color:var(--primary);">0</h3>
+                </div>
+                <div class="card" style="padding:16px;background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.2);">
+                    <p style="font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;">Pending Payment</p>
+                    <h3 id="statPending" style="font-size:1.5rem;margin-top:5px;color:#EF4444;">₹0</h3>
+                </div>
+            </div>
+
+            <!-- Search & Filter -->
+            <div class="card" style="margin-bottom:20px;padding:15px;">
+                <div style="display:flex;gap:12px;">
+                    <div style="position:relative;flex:1;">
+                        <i class="ph ph-magnifying-glass" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);"></i>
+                        <input type="text" id="purchaseSearch" oninput="filterPurchases()" placeholder="Search by product, supplier, or PO number..." style="padding-left:40px;margin-top:0;background:rgba(0,0,0,0.2);">
+                    </div>
+                    <select id="statusFilter" onchange="filterPurchases()" style="width:160px;margin-top:0;background:rgba(0,0,0,0.2);">
+                        <option value="all">All Status</option>
+                        <option value="Paid">Paid</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Partial">Partial</option>
+                    </select>
+                    <button class="btn-gold" style="background:transparent;border:1px solid var(--border);color:white;width:48px;padding:0;" onclick="loadPurchases()">
+                        <i class="ph ph-arrows-clockwise"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="card" style="padding:0;overflow:hidden;">
+                <table style="width:100%;border-collapse:collapse;text-align:left;">
+                    <thead>
+                        <tr style="background:rgba(255,255,255,0.02);color:var(--text-muted);font-size:0.78rem;text-transform:uppercase;">
+                            <th style="padding:14px 20px;font-weight:600;">PO #</th>
+                            <th style="padding:14px 20px;font-weight:600;">Product</th>
+                            <th style="padding:14px 20px;font-weight:600;">Supplier</th>
+                            <th style="padding:14px 20px;font-weight:600;text-align:center;">Qty</th>
+                            <th style="padding:14px 20px;font-weight:600;text-align:right;">Unit Cost</th>
+                            <th style="padding:14px 20px;font-weight:600;text-align:right;">Total</th>
+                            <th style="padding:14px 20px;font-weight:600;">Date</th>
+                            <th style="padding:14px 20px;font-weight:600;">Status</th>
+                            <th style="padding:14px 20px;font-weight:600;text-align:right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="purchaseTableBody">
+                        <tr><td colspan="9" style="padding:50px;text-align:center;color:var(--text-muted);">
+                            <i class="ph ph-spinner ph-spin" style="font-size:2rem;display:block;margin:0 auto 10px;"></i>
+                            Loading purchases...
+                        </td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Purchase Modal -->
+<div class="modal-overlay" id="addPurchaseModal" style="display:none;">
+    <div class="modal-card" style="max-width:560px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;border-bottom:1px solid var(--border);padding-bottom:15px;">
+            <h3 style="margin:0;font-size:1.1rem;">Record New Purchase</h3>
+            <i class="ph ph-x" style="cursor:pointer;font-size:1.2rem;" onclick="closeAddModal()"></i>
+        </div>
+
+        <div style="display:grid;gap:14px;">
+            <!-- Product selector -->
+            <div>
+                <label style="font-size:0.8rem;color:var(--text-muted);margin-bottom:6px;display:block;">Product *</label>
+                <select id="poProduct" style="margin-top:0;">
+                    <option value="">— Select Product —</option>
+                </select>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                <div>
+                    <label style="font-size:0.8rem;color:var(--text-muted);margin-bottom:6px;display:block;">Supplier Name *</label>
+                    <input type="text" id="poSupplier" placeholder="e.g. Sharma Traders">
+                </div>
+                <div>
+                    <label style="font-size:0.8rem;color:var(--text-muted);margin-bottom:6px;display:block;">Purchase Date</label>
+                    <input type="date" id="poDate">
+                </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;">
+                <div>
+                    <label style="font-size:0.8rem;color:var(--text-muted);margin-bottom:6px;display:block;">Quantity *</label>
+                    <input type="number" id="poQty" placeholder="0" min="1" oninput="calcTotal()">
+                </div>
+                <div>
+                    <label style="font-size:0.8rem;color:var(--text-muted);margin-bottom:6px;display:block;">Unit Cost (₹) *</label>
+                    <input type="number" id="poCost" placeholder="0.00" oninput="calcTotal()">
+                </div>
+                <div>
+                    <label style="font-size:0.8rem;color:var(--text-muted);margin-bottom:6px;display:block;">Total Amount</label>
+                    <input type="text" id="poTotal" placeholder="₹0" readonly style="background:rgba(212,175,55,0.05);color:var(--primary);font-weight:700;">
+                </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                <div>
+                    <label style="font-size:0.8rem;color:var(--text-muted);margin-bottom:6px;display:block;">Payment Status</label>
+                    <select id="poStatus" style="margin-top:0;">
+                        <option value="Paid">Paid</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Partial">Partial</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size:0.8rem;color:var(--text-muted);margin-bottom:6px;display:block;">Invoice / Bill No.</label>
+                    <input type="text" id="poInvoice" placeholder="e.g. INV-2026-001">
+                </div>
+            </div>
+
+            <div>
+                <label style="font-size:0.8rem;color:var(--text-muted);margin-bottom:6px;display:block;">Notes (Optional)</label>
+                <input type="text" id="poNotes" placeholder="e.g. Bulk discount applied">
+            </div>
+
+            <!-- Info banner -->
+            <div style="background:rgba(16,185,129,0.05);border:1px solid rgba(16,185,129,0.2);border-radius:8px;padding:10px;display:flex;align-items:center;gap:8px;">
+                <i class="ph ph-info" style="color:#10B981;"></i>
+                <span style="font-size:0.78rem;color:#10B981;">Saving this purchase will <strong>automatically increase</strong> the selected product's stock quantity in Inventory.</span>
+            </div>
+        </div>
+
+        <div style="display:flex;gap:12px;margin-top:24px;">
+            <button class="btn-gold" style="background:transparent;border:1px solid var(--border);color:white;" onclick="closeAddModal()">Cancel</button>
+            <button class="btn-gold" style="flex:1;" id="savePOBtn" onclick="savePurchase()">
+                <i class="ph ph-check-circle"></i> Save Purchase & Update Stock
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let allPurchases = [];
+    let allProducts  = [];
+
+    const showAlert = (title, msg) => {
+        document.getElementById('alertTitle').innerText = title;
+        document.getElementById('alertMsg').innerText   = msg;
+        const al = document.getElementById('customAlert');
+        al.classList.add('show');
+        setTimeout(() => al.classList.remove('show'), 3500);
+    };
+
+    // ── INIT ────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', () => {
+        // Set today's date as default
+        document.getElementById('poDate').value = new Date().toISOString().split('T')[0];
+        loadPurchases();
+        loadProductsForSelect();
+    });
+
+    // ── LOAD PURCHASES ───────────────────────────────────────
+    function loadPurchases() {
+        if (typeof google !== 'undefined') {
+            google.script.run.withSuccessHandler(data => {
+                allPurchases = data || [];
+                renderPurchases(allPurchases);
+                updateStats(allPurchases);
+            }).getServerData('purchases');
+        } else {
+            // Offline: load from localStorage
+            allPurchases = JSON.parse(localStorage.getItem('purchases') || '[]');
+            renderPurchases(allPurchases);
+            updateStats(allPurchases);
+        }
+    }
+
+    // ── LOAD PRODUCTS FOR SELECT ─────────────────────────────
+    function loadProductsForSelect() {
+        const populate = (data) => {
+            allProducts = data || [];
+            const sel = document.getElementById('poProduct');
+            sel.innerHTML = '<option value="">— Select Product —</option>';
+            allProducts.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.id;
+                opt.textContent = `${p.name} (Stock: ${p.qty || 0})`;
+                opt.dataset.cost = p.buy_rate || 0;
+                sel.appendChild(opt);
+            });
+        };
+
+        if (typeof google !== 'undefined') {
+            google.script.run.withSuccessHandler(populate).getServerData('products');
+        } else {
+            // Simulation Mode (Empty by default)
+            populate([]);
+        }
+
+    }
+
+    // Auto-fill cost from product selection
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('poProduct').addEventListener('change', function() {
+            const opt = this.options[this.selectedIndex];
+            if (opt && opt.dataset.cost) {
+                document.getElementById('poCost').value = opt.dataset.cost;
+                calcTotal();
+            }
+        });
+    });
+
+    // ── CALC TOTAL ───────────────────────────────────────────
+    function calcTotal() {
+        const qty  = parseFloat(document.getElementById('poQty').value)  || 0;
+        const cost = parseFloat(document.getElementById('poCost').value) || 0;
+        document.getElementById('poTotal').value = '₹' + (qty * cost).toLocaleString('en-IN');
+    }
+
+    // ── SAVE PURCHASE ────────────────────────────────────────
+    function savePurchase() {
+        const productId   = document.getElementById('poProduct').value;
+        const productName = document.getElementById('poProduct').options[document.getElementById('poProduct').selectedIndex]?.text?.split(' (')[0] || '';
+        const supplier    = document.getElementById('poSupplier').value.trim();
+        const qty         = parseInt(document.getElementById('poQty').value)   || 0;
+        const cost        = parseFloat(document.getElementById('poCost').value) || 0;
+        const status      = document.getElementById('poStatus').value;
+        const date        = document.getElementById('poDate').value;
+        const invoice     = document.getElementById('poInvoice').value.trim();
+        const notes       = document.getElementById('poNotes').value.trim();
+
+        if (!productId) return showAlert('Error', 'Please select a product.');
+        if (!supplier)  return showAlert('Error', 'Supplier name is required.');
+        if (qty < 1)    return showAlert('Error', 'Quantity must be at least 1.');
+        if (cost <= 0)  return showAlert('Error', 'Unit cost is required.');
+
+        const purchase = {
+            productId, productName, supplier,
+            qty, cost, total: qty * cost,
+            status, date, invoice, notes
+        };
+
+        const btn = document.getElementById('savePOBtn');
+        btn.innerHTML = '<i class="ph ph-circle-notch ph-spin"></i> Saving...';
+        btn.disabled = true;
+
+        if (typeof google !== 'undefined') {
+            google.script.run
+                .withSuccessHandler(res => {
+                    btn.innerHTML = '<i class="ph ph-check-circle"></i> Save Purchase & Update Stock';
+                    btn.disabled  = false;
+                    if (res.success) {
+                        showAlert('Success', res.message);
+                        closeAddModal();
+                        loadPurchases();
+                    } else {
+                        showAlert('Error', res.message);
+                    }
+                })
+                .withFailureHandler(err => {
+                    btn.innerHTML = '<i class="ph ph-check-circle"></i> Save Purchase & Update Stock';
+                    btn.disabled  = false;
+                    // Fallback to offline
+                    saveOfflinePurchase(purchase);
+                })
+                .savePurchase(purchase);
+        } else {
+            saveOfflinePurchase(purchase);
+            btn.innerHTML = '<i class="ph ph-check-circle"></i> Save Purchase & Update Stock';
+            btn.disabled  = false;
+        }
+    }
+
+    function saveOfflinePurchase(purchase) {
+        const purchases = JSON.parse(localStorage.getItem('purchases') || '[]');
+        const poId = 'PO-' + Date.now().toString().slice(-6);
+        purchases.push({ ...purchase, id: poId, createdAt: new Date().toISOString() });
+        localStorage.setItem('purchases', JSON.stringify(purchases));
+
+        // Also update inventory quantity in localStorage
+        const products = JSON.parse(localStorage.getItem('products') || '[]');
+        const prod = products.find(p => p.id === purchase.productId);
+        if (prod) {
+            prod.qty = (parseInt(prod.qty) || 0) + purchase.qty;
+            localStorage.setItem('products', JSON.stringify(products));
+        }
+
+        showAlert('Saved (Offline)', `PO ${poId} saved locally. Stock updated.`);
+        closeAddModal();
+        loadPurchases();
+    }
+
+    // ── FILTER ───────────────────────────────────────────────
+    function filterPurchases() {
+        const q      = document.getElementById('purchaseSearch').value.toLowerCase();
+        const status = document.getElementById('statusFilter').value;
+        const filtered = allPurchases.filter(p => {
+            const matchQ = (p.productName || '').toLowerCase().includes(q) ||
+                           (p.supplier    || '').toLowerCase().includes(q) ||
+                           (p.id          || '').toLowerCase().includes(q) ||
+                           (p.invoice     || '').toLowerCase().includes(q);
+            const matchS = status === 'all' || p.status === status;
+            return matchQ && matchS;
+        });
+        renderPurchases(filtered);
+    }
+
+    // ── RENDER ───────────────────────────────────────────────
+    function renderPurchases(data) {
+        const tbody = document.getElementById('purchaseTableBody');
+        if (!data || data.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="9" style="padding:50px;text-align:center;color:var(--text-muted);">
+                <i class="ph ph-shopping-bag-open" style="font-size:3rem;opacity:0.2;display:block;margin:0 auto 12px;"></i>
+                No purchases recorded yet. Click <strong>New Purchase</strong> to add one.
+            </td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = data.map(p => {
+            const statusColor = { 'Paid':'#10B981', 'Pending':'#EF4444', 'Partial':'#F59E0B' }[p.status] || '#9CA3AF';
+            const statusBg    = { 'Paid':'rgba(16,185,129,0.1)', 'Pending':'rgba(239,68,68,0.1)', 'Partial':'rgba(245,158,11,0.1)' }[p.status] || 'rgba(156,163,175,0.1)';
+            return `
+            <tr style="border-bottom:1px solid var(--border);transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='transparent'">
+                <td style="padding:14px 20px;font-family:monospace;font-size:0.82rem;color:var(--text-muted);">${p.id || '—'}</td>
+                <td style="padding:14px 20px;font-weight:600;">${p.productName || '—'}</td>
+                <td style="padding:14px 20px;color:var(--text-muted);">${p.supplier || '—'}</td>
+                <td style="padding:14px 20px;text-align:center;font-weight:700;">${p.qty}</td>
+                <td style="padding:14px 20px;text-align:right;">₹${(p.cost || 0).toLocaleString('en-IN')}</td>
+                <td style="padding:14px 20px;text-align:right;font-weight:700;color:var(--primary);">₹${(p.total || 0).toLocaleString('en-IN')}</td>
+                <td style="padding:14px 20px;color:var(--text-muted);font-size:0.85rem;">${p.date || '—'}</td>
+                <td style="padding:14px 20px;">
+                    <span style="background:${statusBg};color:${statusColor};padding:4px 10px;border-radius:20px;font-size:0.75rem;font-weight:600;">${p.status}</span>
+                </td>
+                <td style="padding:14px 20px;text-align:right;">
+                    <button style="background:transparent;border:none;color:#EF4444;cursor:pointer;padding:4px 8px;" onclick="deletePurchase('${p.id}')"><i class="ph ph-trash"></i></button>
+                </td>
+            </tr>`;
+        }).join('');
+    }
+
+    // ── STATS ─────────────────────────────────────────────────
+    function updateStats(data) {
+        const now   = new Date();
+        const month = now.getMonth();
+        const year  = now.getFullYear();
+
+        let total   = 0, thisMonth = 0, pending = 0;
+        data.forEach(p => {
+            total += p.total || 0;
+            if (p.status === 'Pending' || p.status === 'Partial') pending += p.total || 0;
+            const d = new Date(p.date || p.createdAt);
+            if (d.getMonth() === month && d.getFullYear() === year) thisMonth += p.total || 0;
+        });
+
+        document.getElementById('statTotal').innerText   = '₹' + total.toLocaleString('en-IN');
+        document.getElementById('statMonth').innerText   = '₹' + thisMonth.toLocaleString('en-IN');
+        document.getElementById('statCount').innerText   = data.length;
+        document.getElementById('statPending').innerText = '₹' + pending.toLocaleString('en-IN');
+    }
+
+    // ── DELETE ───────────────────────────────────────────────
+    function deletePurchase(id) {
+        if (!confirm('Delete this purchase record? (Stock will NOT be reversed)')) return;
+        if (typeof google !== 'undefined') {
+            google.script.run.withSuccessHandler(res => {
+                if (res.success) { showAlert('Deleted', 'Purchase removed.'); loadPurchases(); }
+                else showAlert('Error', res.message);
+            }).deletePurchase(id);
+        } else {
+            let purchases = JSON.parse(localStorage.getItem('purchases') || '[]');
+            purchases = purchases.filter(p => p.id !== id);
+            localStorage.setItem('purchases', JSON.stringify(purchases));
+            showAlert('Deleted', 'Purchase removed locally.');
+            loadPurchases();
+        }
+    }
+
+    // ── MODAL ────────────────────────────────────────────────
+    function openAddModal() {
+        document.getElementById('poProduct').value  = '';
+        document.getElementById('poSupplier').value = '';
+        document.getElementById('poQty').value      = '';
+        document.getElementById('poCost').value     = '';
+        document.getElementById('poTotal').value    = '₹0';
+        document.getElementById('poStatus').value   = 'Paid';
+        document.getElementById('poInvoice').value  = '';
+        document.getElementById('poNotes').value    = '';
+        document.getElementById('poDate').value     = new Date().toISOString().split('T')[0];
+        document.getElementById('addPurchaseModal').style.display = 'flex';
+    }
+
+    function closeAddModal() {
+        document.getElementById('addPurchaseModal').style.display = 'none';
+    }
+</script>
+
+</body>
+</html>

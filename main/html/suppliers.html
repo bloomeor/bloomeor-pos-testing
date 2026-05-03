@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <base target="_top">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bloomeor POS — Suppliers</title>
+    <link rel="icon" type="image/x-icon" href="../images/logo/Bloomeor-logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="../css/styles.css">
+    <script>
+        (function() {
+            const settings = JSON.parse(localStorage.getItem('bloomeor_settings') || '{}');
+            if (settings.appTheme === 'light') {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+    <link rel="manifest" href="../../manifest.json">
+</head>
+<body>
+
+<div id="customAlert"><strong id="alertTitle">Info</strong><p id="alertMsg"></p></div>
+
+<div id="app-layout">
+    <div class="sidebar" id="sidebar">
+        <div class="logo">
+            <img src="../images/logo/Bloomeor-logo.png" alt="Logo" style="max-height:38px;width:auto;filter:drop-shadow(0 0 8px rgba(212,175,55,0.3));" onerror="this.style.display='none';">
+            <span style="margin-left:6px;color:var(--text-primary);font-size:1.5rem;font-weight:700;letter-spacing:-0.05em;">Bloomeor</span>
+        </div>
+        <div class="nav-header">NAVIGATION</div>
+        <div id="navMenu">
+            <a class="nav-link" href="dashboard.html"><i class="ph ph-chart-line-up"></i> Dashboard</a>
+            <a class="nav-link" href="pos.html"><i class="ph ph-cash-register"></i> POS / New Sale</a>
+            <a class="nav-link" href="sales.html"><i class="ph ph-receipt"></i> Sales List</a>
+            <a class="nav-link" href="customers.html"><i class="ph ph-users"></i> Customers</a>
+            <a class="nav-link" href="inventory.html"><i class="ph ph-package"></i> Inventory</a>
+            <a class="nav-link" href="purchases.html"><i class="ph ph-shopping-cart"></i> Purchases</a>
+            <a class="nav-link active" href="suppliers.html"><i class="ph ph-handshake"></i> Suppliers</a>
+            <a class="nav-link" href="payments.html"><i class="ph ph-money"></i> Payments</a>
+            <a class="nav-link" href="expenses.html"><i class="ph ph-file-text"></i> Expenses</a>
+            <a class="nav-link" href="reminders.html"><i class="ph-fill ph-bell" style="color:#EF4444;"></i> Due Reminders</a>
+            <a class="nav-link" href="reports.html"><i class="ph ph-chart-bar"></i> Reports</a>
+            <a class="nav-link" href="settings.html"><i class="ph ph-gear"></i> Settings</a>
+        </div>
+
+        <div class="nav-header" style="margin-top: auto;">SUPPORT</div>
+        <div style="padding: 10px 24px; color: var(--text-muted); font-size: 0.85rem;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                <i class="ph ph-phone" style="color: var(--primary);"></i>
+                <span>9902356539</span>
+            </div>
+            <div style="font-size: 0.7rem; opacity: 0.6;">Customer Care</div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="topbar">
+            <h3 style="color:var(--text-sub)">Supply Chain</h3>
+            <div style="display:flex;gap:15px;align-items:center;">
+                <span style="font-weight:500;">Admin</span>
+            </div>
+        </div>
+
+        <div class="view-container">
+            <div class="page-view active" style="display:block;animation:none;">
+                
+                <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:30px;">
+                    <div>
+                        <h2 style="font-size:1.75rem;font-weight:700;">Suppliers</h2>
+                        <p style="color:var(--text-muted);margin-top:4px;">Manage vendor relationships and supply chain logistics.</p>
+                    </div>
+                    <div style="display:flex;gap:12px;">
+                        <button class="btn-secondary" onclick="loadSuppliers()">
+                            <i class="ph ph-arrows-clockwise"></i> Refresh
+                        </button>
+                        <button class="btn-gold" onclick="openAddModal()">
+                            <i class="ph ph-plus-circle"></i> Add Supplier
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stats Overview -->
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-bottom:30px;">
+                    <div class="card" style="position:relative;overflow:hidden;">
+                        <i class="ph ph-handshake" style="position:absolute;right:-10px;bottom:-10px;font-size:5rem;opacity:0.05;color:var(--primary);"></i>
+                        <p style="font-size:0.75rem;color:var(--text-muted);text-transform:uppercase;font-weight:700;letter-spacing:0.05em;">Total Vendors</p>
+                        <h3 id="statTotal" style="font-size:2rem;margin-top:8px;font-weight:700;">0</h3>
+                    </div>
+                    <div class="card" style="position:relative;overflow:hidden;">
+                        <i class="ph ph-check-circle" style="position:absolute;right:-10px;bottom:-10px;font-size:5rem;opacity:0.05;color:#10B981;"></i>
+                        <p style="font-size:0.75rem;color:var(--text-muted);text-transform:uppercase;font-weight:700;letter-spacing:0.05em;">Active Partnerships</p>
+                        <h3 id="statActive" style="font-size:2rem;margin-top:8px;font-weight:700;color:#10B981;">0</h3>
+                    </div>
+                    <div class="card" style="position:relative;overflow:hidden;">
+                        <i class="ph ph-tag" style="position:absolute;right:-10px;bottom:-10px;font-size:5rem;opacity:0.05;color:var(--primary);"></i>
+                        <p style="font-size:0.75rem;color:var(--text-muted);text-transform:uppercase;font-weight:700;letter-spacing:0.05em;">Categories</p>
+                        <h3 id="statCategories" style="font-size:2rem;margin-top:8px;font-weight:700;color:var(--primary);">0</h3>
+                    </div>
+                    <div class="card" style="position:relative;overflow:hidden;">
+                        <i class="ph ph-warning-circle" style="position:absolute;right:-10px;bottom:-10px;font-size:5rem;opacity:0.05;color:#EF4444;"></i>
+                        <p style="font-size:0.75rem;color:var(--text-muted);text-transform:uppercase;font-weight:700;letter-spacing:0.05em;">Inactive</p>
+                        <h3 id="statInactive" style="font-size:2rem;margin-top:8px;font-weight:700;color:#EF4444;">0</h3>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="card" style="margin-bottom:24px;padding:16px;">
+                    <div style="display:flex;gap:16px;align-items:center;">
+                        <div style="position:relative;flex:1;">
+                            <i class="ph ph-magnifying-glass" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-muted);"></i>
+                            <input type="text" id="supplierSearch" oninput="filterSuppliers()" placeholder="Search by name, phone, or GSTIN..." style="padding-left:44px;margin-top:0;background:var(--input-bg);height:48px;">
+                        </div>
+                        <div style="width:220px;">
+                            <select id="categoryFilter" onchange="filterSuppliers()" style="margin-top:0;background:var(--input-bg);height:48px;">
+                                <option value="all">All Categories</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Table -->
+                <div class="card" style="padding:0;overflow:hidden;border:1px solid var(--border);">
+                    <div style="overflow-x:auto;">
+                        <table style="width:100%;border-collapse:collapse;text-align:left;">
+                            <thead>
+                                <tr style="background:rgba(255,255,255,0.02);border-bottom:1px solid var(--border);">
+                                    <th style="padding:16px 24px;font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Supplier Details</th>
+                                    <th style="padding:16px 24px;font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Contact Info</th>
+                                    <th style="padding:16px 24px;font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Tax / Identity</th>
+                                    <th style="padding:16px 24px;font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Status</th>
+                                    <th style="padding:16px 24px;font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;text-align:right;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="supplierTableBody">
+                                <tr>
+                                    <td colspan="5" style="padding:100px 0;text-align:center;">
+                                        <div style="display:flex;flex-direction:column;align-items:center;gap:12px;">
+                                            <i class="ph ph-circle-notch ph-spin" style="font-size:2rem;color:var(--primary);"></i>
+                                            <p style="color:var(--text-muted);">Syncing supplier data...</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="supplierModal">
+    <div class="modal-card" style="max-width:600px;padding:0;overflow:hidden;">
+        <div style="padding:24px;background:var(--bg-base);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+            <div>
+                <h3 id="modalTitle" style="margin:0;font-size:1.25rem;font-weight:700;">Add Supplier</h3>
+                <p style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;">Enter vendor registration and contact details.</p>
+            </div>
+            <button onclick="closeModal()" style="background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-size:1.5rem;"><i class="ph ph-x"></i></button>
+        </div>
+
+        <div style="padding:32px;display:grid;gap:20px;">
+            <input type="hidden" id="supId">
+            
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+                <div style="grid-column:span 2;">
+                    <label style="font-size:0.8rem;color:var(--text-muted);margin-bottom:6px;display:block;font-weight:500;">Supplier / Company Name *</label>
+                    <input type="text" id="supName" placeholder="e.g. Reliance Retail Ltd." style="background:var(--bg-base);">
+                </div>
+                <div>
+                    <label style="font-size:0.8rem;color:var(--text-muted);margin-bottom:6px;display:block;font-weight:500;">Mobile Number</label>
+                    <input type="text" id="supPhone" placeholder="+91 00000 00000" style="background:var(--bg-base);">
+                </div>
+                <div>
+                    <label style="font-size:0.8rem;color:var(--text-muted);margin-bottom:6px;display:block;font-weight:500;">Email Address</label>
+                    <input type="email" id="supEmail" placeholder="vendor@example.com" style="background:var(--bg-base);">
+                </div>
+                <div>
+                    <label style="font-size:0.8rem;color:var(--text-muted);margin-bottom:6px;display:block;font-weight:500;">GSTIN (Optional)</label>
+                    <input type="text" id="supGstin" placeholder="29XXXXX0000X1Z5" style="background:var(--bg-base);">
+                </div>
+                <div>
+                    <label style="font-size:0.8rem;color:var(--text-muted);margin-bottom:6px;display:block;font-weight:500;">Category</label>
+                    <select id="supCategory" style="margin-top:0;background:var(--bg-base);">
+                        <option value="General">General</option>
+                        <option value="Electronics">Electronics</option>
+                        <option value="Grocery">Grocery</option>
+                        <option value="Wholesale">Wholesale</option>
+                        <option value="Distributor">Distributor</option>
+                    </select>
+                </div>
+                <div style="grid-column:span 2;">
+                    <label style="font-size:0.8rem;color:var(--text-muted);margin-bottom:6px;display:block;font-weight:500;">Registered Office Address</label>
+                    <input type="text" id="supAddress" placeholder="Full business address" style="background:var(--bg-base);">
+                </div>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:10px;padding:15px;background:rgba(212,175,55,0.05);border-radius:12px;border:1px solid rgba(212,175,55,0.1);">
+                <input type="checkbox" id="supActive" checked style="width:20px;height:20px;margin-top:0;accent-color:var(--primary);">
+                <label for="supActive" style="font-size:0.9rem;font-weight:500;">Enable this supplier for procurement</label>
+            </div>
+        </div>
+
+        <div style="padding:24px;background:var(--bg-base);border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:12px;">
+            <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+            <button class="btn-gold" id="saveBtn" style="width:200px;" onclick="saveSupplier()">
+                <i class="ph ph-floppy-disk"></i> Save Supplier
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let allSuppliers = [];
+
+    const showAlert = (title, msg) => {
+        document.getElementById('alertTitle').innerText = title;
+        document.getElementById('alertMsg').innerText   = msg;
+        const al = document.getElementById('customAlert');
+        al.classList.add('show');
+        setTimeout(() => al.classList.remove('show'), 3500);
+    };
+
+    document.addEventListener('DOMContentLoaded', loadSuppliers);
+
+    function loadSuppliers() {
+        if (typeof google !== 'undefined') {
+            google.script.run.withSuccessHandler(data => {
+                allSuppliers = data || [];
+                renderSuppliers(allSuppliers);
+                updateStats(allSuppliers);
+                populateCategories(allSuppliers);
+            }).getServerData('suppliers');
+        } else {
+            allSuppliers = JSON.parse(localStorage.getItem('suppliers') || '[]');
+            renderSuppliers(allSuppliers);
+            updateStats(allSuppliers);
+            populateCategories(allSuppliers);
+        }
+    }
+
+    function populateCategories(data) {
+        const cats = [...new Set(data.map(s => s.category || 'General'))];
+        const sel = document.getElementById('categoryFilter');
+        sel.innerHTML = '<option value="all">All Categories</option>';
+        cats.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c;
+            opt.textContent = c;
+            sel.appendChild(opt);
+        });
+    }
+
+    function filterSuppliers() {
+        const q = document.getElementById('supplierSearch').value.toLowerCase();
+        const cat = document.getElementById('categoryFilter').value;
+        const filtered = allSuppliers.filter(s => {
+            const matchQ = (s.name || '').toLowerCase().includes(q) ||
+                           (s.phone || '').toLowerCase().includes(q) ||
+                           (s.gstin || '').toLowerCase().includes(q);
+            const matchC = cat === 'all' || s.category === cat;
+            return matchQ && matchC;
+        });
+        renderSuppliers(filtered);
+    }
+
+    function renderSuppliers(data) {
+        const tbody = document.getElementById('supplierTableBody');
+        if (!data || data.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" style="padding:80px 0;text-align:center;">
+                <div style="display:flex;flex-direction:column;align-items:center;gap:15px;opacity:0.4;">
+                    <i class="ph ph-handshake" style="font-size:4rem;"></i>
+                    <p style="font-size:1.1rem;font-weight:500;">No suppliers found</p>
+                    <button class="btn-gold" style="width:auto;height:40px;font-size:0.8rem;" onclick="openAddModal()">Add Your First Supplier</button>
+                </div>
+            </td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = data.map(s => `
+            <tr style="border-bottom:1px solid var(--border);transition:var(--transition);" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='transparent'">
+                <td style="padding:16px 24px;">
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <div style="width:40px;height:40px;border-radius:10px;background:rgba(212,175,55,0.1);display:flex;align-items:center;justify-content:center;color:var(--primary);font-weight:700;">
+                            ${(s.name || 'S')[0].toUpperCase()}
+                        </div>
+                        <div>
+                            <div style="font-weight:600;color:var(--text-primary);">${s.name}</div>
+                            <div style="font-size:0.75rem;color:var(--text-muted);">${s.category || 'General'} • ${s.id}</div>
+                        </div>
+                    </div>
+                </td>
+                <td style="padding:16px 24px;">
+                    <div style="display:flex;align-items:center;gap:8px;font-size:0.9rem;">
+                        <i class="ph ph-phone" style="color:var(--text-muted);"></i>
+                        ${s.phone || '—'}
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;font-size:0.75rem;color:var(--text-muted);margin-top:4px;">
+                        <i class="ph ph-envelope"></i>
+                        ${s.email || '—'}
+                    </div>
+                </td>
+                <td style="padding:16px 24px;">
+                    <div style="font-family:monospace;font-size:0.85rem;color:var(--text-sub);">${s.gstin || 'No GSTIN'}</div>
+                    <div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                        <i class="ph ph-map-pin"></i> ${s.address || 'No address'}
+                    </div>
+                </td>
+                <td style="padding:16px 24px;">
+                    <span style="display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;font-size:0.7rem;font-weight:700;letter-spacing:0.02em;background:${s.is_active ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)'};color:${s.is_active ? '#10B981' : '#EF4444'};">
+                        <span style="width:6px;height:6px;border-radius:50%;background:currentColor;"></span>
+                        ${s.is_active ? 'ACTIVE' : 'INACTIVE'}
+                    </span>
+                </td>
+                <td style="padding:16px 24px;text-align:right;">
+                    <div style="display:flex;gap:8px;justify-content:flex-end;">
+                        <button class="btn-secondary" style="width:36px;height:36px;padding:0;border-radius:8px;" onclick="editSupplier('${s.id}')" title="Edit Supplier">
+                            <i class="ph ph-pencil-simple"></i>
+                        </button>
+                        <button class="btn-secondary" style="width:36px;height:36px;padding:0;border-radius:8px;color:#EF4444;border-color:rgba(239,68,68,0.1);" onclick="deleteSupplier('${s.id}')" title="Delete Supplier">
+                            <i class="ph ph-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>`).join('');
+    }
+
+    function updateStats(data) {
+        const active = data.filter(s => s.is_active).length;
+        const categories = [...new Set(data.map(s => s.category))].length;
+        document.getElementById('statTotal').innerText = data.length;
+        document.getElementById('statActive').innerText = active;
+        document.getElementById('statCategories').innerText = categories;
+        document.getElementById('statInactive').innerText = data.length - active;
+    }
+
+    function saveSupplier() {
+        const id       = document.getElementById('supId').value;
+        const name     = document.getElementById('supName').value.trim();
+        const phone    = document.getElementById('supPhone').value.trim();
+        const email    = document.getElementById('supEmail').value.trim();
+        const gstin    = document.getElementById('supGstin').value.trim();
+        const category = document.getElementById('supCategory').value;
+        const address  = document.getElementById('supAddress').value.trim();
+        const is_active = document.getElementById('supActive').checked;
+
+        if (!name) return showAlert('Error', 'Supplier name is required.');
+
+        const supplier = { id, name, phone, email, gstin, category, address, is_active };
+
+        const btn = document.getElementById('saveBtn');
+        btn.innerHTML = '<i class="ph ph-circle-notch ph-spin"></i> Saving...';
+        btn.disabled = true;
+
+        if (typeof google !== 'undefined') {
+            google.script.run
+                .withSuccessHandler(res => {
+                    btn.innerHTML = '<i class="ph ph-floppy-disk"></i> Save Supplier';
+                    btn.disabled = false;
+                    if (res.success) {
+                        showAlert('Success', res.message);
+                        closeModal();
+                        loadSuppliers();
+                    } else showAlert('Error', res.message);
+                })
+                .saveSupplier(supplier);
+        } else {
+            let suppliers = JSON.parse(localStorage.getItem('suppliers') || '[]');
+            if (id) {
+                const idx = suppliers.findIndex(s => s.id === id);
+                if (idx > -1) suppliers[idx] = { ...suppliers[idx], ...supplier };
+            } else {
+                const newId = 'SUP-' + Date.now().toString().slice(-6);
+                suppliers.push({ ...supplier, id: newId, createdAt: new Date().toISOString() });
+            }
+            localStorage.setItem('suppliers', JSON.stringify(suppliers));
+            showAlert('Saved (Offline)', 'Supplier saved locally.');
+            btn.innerHTML = '<i class="ph ph-floppy-disk"></i> Save Supplier';
+            btn.disabled = false;
+            closeModal();
+            loadSuppliers();
+        }
+    }
+
+    function editSupplier(id) {
+        const s = allSuppliers.find(x => x.id === id);
+        if (!s) return;
+        document.getElementById('supId').value = s.id;
+        document.getElementById('supName').value = s.name;
+        document.getElementById('supPhone').value = s.phone || '';
+        document.getElementById('supEmail').value = s.email || '';
+        document.getElementById('supGstin').value = s.gstin || '';
+        document.getElementById('supCategory').value = s.category || 'General';
+        document.getElementById('supAddress').value = s.address || '';
+        document.getElementById('supActive').checked = s.is_active;
+        document.getElementById('modalTitle').innerText = 'Edit Supplier';
+        document.getElementById('supplierModal').style.display = 'flex';
+    }
+
+    function deleteSupplier(id) {
+        if (!confirm('Are you sure you want to delete this supplier?')) return;
+        if (typeof google !== 'undefined') {
+            google.script.run.withSuccessHandler(res => {
+                if (res.success) { showAlert('Deleted', 'Supplier removed.'); loadSuppliers(); }
+                else showAlert('Error', res.message);
+            }).deleteSupplier(id);
+        } else {
+            let suppliers = JSON.parse(localStorage.getItem('suppliers') || '[]');
+            suppliers = suppliers.filter(s => s.id !== id);
+            localStorage.setItem('suppliers', JSON.stringify(suppliers));
+            showAlert('Deleted', 'Supplier removed locally.');
+            loadSuppliers();
+        }
+    }
+
+    function openAddModal() {
+        document.getElementById('supId').value = '';
+        document.getElementById('supName').value = '';
+        document.getElementById('supPhone').value = '';
+        document.getElementById('supEmail').value = '';
+        document.getElementById('supGstin').value = '';
+        document.getElementById('supCategory').value = 'General';
+        document.getElementById('supAddress').value = '';
+        document.getElementById('supActive').checked = true;
+        document.getElementById('modalTitle').innerText = 'Add New Supplier';
+        document.getElementById('supplierModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('supplierModal').style.display = 'none';
+    }
+</script>
+
+</body>
+</html>

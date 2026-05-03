@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <base target="_top">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bloomeor POS — Dashboard</title>
+    <link rel="icon" type="image/x-icon" href="../images/logo/Bloomeor-logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="../css/styles.css">
+    <script>
+        (function() {
+            const settings = JSON.parse(localStorage.getItem('bloomeor_settings') || '{}');
+            if (settings.appTheme === 'light') {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+    <link rel="manifest" href="../../manifest.json">
+</head>
+<body>
+
+<div id="customAlert"><strong id="alertTitle">Info</strong><p id="alertMsg"></p></div>
+
+<div id="app-layout">
+    <div class="sidebar" id="sidebar">
+        <div class="logo">
+            <img src="../images/logo/Bloomeor-logo.png" alt="Logo" style="max-height: 38px; width: auto; filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.3));" onerror="this.style.display='none';">
+            <span style="margin-left: 6px; color: var(--text-primary); font-size: 1.5rem; font-weight: 700; letter-spacing: -0.05em;">Bloomeor</span>
+        </div>
+        <div class="nav-header">NAVIGATION</div>
+        <div id="navMenu">
+            <a class="nav-link active" href="dashboard.html"><i class="ph ph-chart-line-up"></i> Dashboard</a>
+            <a class="nav-link" href="pos.html"><i class="ph ph-cash-register"></i> POS / New Sale</a>
+            <a class="nav-link" href="sales.html"><i class="ph ph-receipt"></i> Sales List</a>
+            <a class="nav-link" href="customers.html"><i class="ph ph-users"></i> Customers</a>
+            <a class="nav-link" href="inventory.html"><i class="ph ph-package"></i> Inventory</a>
+            <a class="nav-link" href="purchases.html"><i class="ph ph-shopping-cart"></i> Purchases</a>
+            <a class="nav-link" href="suppliers.html"><i class="ph ph-handshake"></i> Suppliers</a>
+            <a class="nav-link" href="payments.html"><i class="ph ph-money"></i> Payments</a>
+            <a class="nav-link" href="expenses.html"><i class="ph ph-file-text"></i> Expenses</a>
+            <a class="nav-link" href="reminders.html"><i class="ph-fill ph-bell" style="color: #EF4444;"></i> Due Reminders</a>
+            <a class="nav-link" href="reports.html"><i class="ph ph-chart-bar"></i> Reports</a>
+            <a class="nav-link" href="settings.html"><i class="ph ph-gear"></i> Settings</a>
+        </div>
+
+        <div class="nav-header" style="margin-top: auto;">SUPPORT</div>
+        <div style="padding: 10px 24px; color: var(--text-muted); font-size: 0.85rem;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                <i class="ph ph-phone" style="color: var(--primary);"></i>
+                <span>9902356539</span>
+            </div>
+            <div style="font-size: 0.7rem; opacity: 0.6;">Customer Care</div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="topbar">
+            <h3 style="color: var(--text-sub)">Business Insights</h3>
+            <div style="display:flex; gap: 15px; align-items: center;">
+                <span id="userNameHeader" style="font-weight: 500;">Admin</span>
+            </div>
+        </div>
+        
+        <div class="view-container">
+            <div class="page-view active" style="display:block; animation:none; height:100%;">
+                
+                <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px;">
+                    <div>
+                        <h2 style="font-size: 1.75rem; font-weight: 700;">Performance Overview</h2>
+                        <p style="color: var(--text-muted); margin-top: 4px;">Real-time business health and inventory alerts.</p>
+                    </div>
+                    <button class="btn-gold" style="width:auto; height:45px;" onclick="refreshDashboard()">
+                        <i class="ph ph-arrows-clockwise"></i> Refresh Data
+                    </button>
+                </div>
+
+                <!-- KPI Cards -->
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px;">
+                    <div class="card" style="border-top: 4px solid var(--primary); padding: 24px;">
+                        <p style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase; font-weight:700; letter-spacing:0.05em;">Total Revenue</p>
+                        <h3 id="statTotalSales" style="font-size:1.8rem; margin-top:10px; font-weight:700;">₹0</h3>
+                        <div id="revenueTrend" style="font-size:0.75rem; color:#10B981; margin-top:10px; font-weight:600;">+0% this week</div>
+                    </div>
+                    <div class="card" style="border-top: 4px solid #3B82F6; padding: 24px;">
+                        <p style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase; font-weight:700; letter-spacing:0.05em;">Sales Today</p>
+                        <h3 id="statSalesToday" style="font-size:1.8rem; margin-top:10px; font-weight:700;">₹0</h3>
+                        <div id="salesCount" style="font-size:0.75rem; color:var(--text-muted); margin-top:10px;">Across 0 transactions</div>
+                    </div>
+                    <div class="card" style="border-top: 4px solid #10B981; padding: 24px;">
+                        <p style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase; font-weight:700; letter-spacing:0.05em;">Active Customers</p>
+                        <h3 id="statCustomers" style="font-size:1.8rem; margin-top:10px; font-weight:700;">0</h3>
+                        <div style="font-size:0.75rem; color:#10B981; margin-top:10px; font-weight:600;">Growing community</div>
+                    </div>
+                    <div class="card" style="border-top: 4px solid #F59E0B; padding: 24px;">
+                        <p style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase; font-weight:700; letter-spacing:0.05em;">Low Stock SKU</p>
+                        <h3 id="statLowStock" style="font-size:1.8rem; margin-top:10px; font-weight:700; color:#F59E0B;">0</h3>
+                        <div style="font-size:0.75rem; color:#F59E0B; margin-top:10px; font-weight:600;">Reorder required</div>
+                    </div>
+                </div>
+
+                <!-- Alert Section: Expiry & Inventory -->
+                <div id="inventoryAlertSection" style="display:none; margin-bottom:30px;">
+                    <div class="card" style="background:rgba(239,68,68,0.05); border:1px solid rgba(239,68,68,0.2); padding:20px;">
+                        <div style="display:flex; align-items:center; gap:12px; margin-bottom:15px; color:#EF4444;">
+                            <i class="ph-fill ph-warning-diamond" style="font-size:1.5rem;"></i>
+                            <h4 style="font-weight:700; text-transform:uppercase; letter-spacing:0.05em; font-size:0.85rem;">Critical Inventory Alerts</h4>
+                        </div>
+                        <div id="expiryAlertList" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:15px;">
+                            <!-- Alerts injected here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts -->
+                <div style="display: grid; grid-template-columns: 1.8fr 1.2fr; gap: 24px; margin-bottom: 30px;">
+                    <div class="card" style="min-height: 400px; padding: 24px;">
+                        <h4 style="font-weight: 700; margin-bottom: 20px;">Revenue Performance</h4>
+                        <canvas id="revenueChart" style="max-height: 320px;"></canvas>
+                    </div>
+                    <div class="card" style="min-height: 400px; padding: 24px;">
+                        <h4 style="font-weight: 700; margin-bottom: 20px;">Stock Composition</h4>
+                        <canvas id="categoryChart" style="max-height: 320px;"></canvas>
+                    </div>
+                </div>
+
+                <!-- Recent Sales -->
+                <div class="card" style="padding: 0; overflow: hidden; border: 1px solid var(--border);">
+                    <div style="padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                        <h4 style="font-weight: 700;">Recent Transactions</h4>
+                        <a href="sales.html" class="btn-secondary" style="padding: 6px 12px; font-size: 0.75rem;">View All Sales</a>
+                    </div>
+                    <div style="overflow-x:auto;">
+                        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                            <thead>
+                                <tr style="background: rgba(255,255,255,0.02); color: var(--text-muted); font-size: 0.7rem; text-transform: uppercase;">
+                                    <th style="padding: 16px 24px; font-weight: 700;">Order ID</th>
+                                    <th style="padding: 16px 24px; font-weight: 700;">Customer</th>
+                                    <th style="padding: 16px 24px; font-weight: 700;">Method</th>
+                                    <th style="padding: 16px 24px; font-weight: 700;">Date</th>
+                                    <th style="padding: 16px 24px; font-weight: 700; text-align: right;">Total Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentSalesBody" style="font-size: 0.9rem;">
+                                <tr><td colspan="5" style="padding: 60px; text-align: center; color: var(--text-muted);">
+                                    <i class="ph ph-spinner ph-spin" style="font-size: 2rem; display: block; margin: 0 auto 12px;"></i>
+                                    Syncing transaction history...
+                                </td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        refreshDashboard();
+    });
+
+    function refreshDashboard() {
+        if (typeof google !== 'undefined') {
+            google.script.run.withSuccessHandler(data => {
+                google.script.run.withSuccessHandler(products => {
+                    const mergedData = mergeOfflineSales(data);
+                    updateDashboardUI(mergedData, products);
+                }).getServerData('products');
+            }).getServerData('dashboardStats');
+        } else {
+            // Local Simulation
+            const stats = JSON.parse(localStorage.getItem('dashboard_stats') || '{"totalSales":0,"salesToday":0,"customerCount":0,"lowStock":0,"recentSales":[],"revenueChart":{"labels":[],"data":[]}}');
+            const products = JSON.parse(localStorage.getItem('products') || '[]');
+            updateDashboardUI(mergeOfflineSales(stats), products);
+        }
+    }
+
+    function mergeOfflineSales(serverData) {
+        const offline = JSON.parse(localStorage.getItem('offline_sales') || '[]');
+        let offTotal = 0, offToday = 0;
+        const todayStr = new Date().toLocaleDateString();
+
+        offline.forEach(s => {
+            offTotal += (s.cart?.total || 0);
+            if(new Date(s.date).toLocaleDateString() === todayStr) offToday += (s.cart?.total || 0);
+        });
+
+        return {
+            ...serverData,
+            totalSales: (serverData.totalSales || 0) + offTotal,
+            salesToday: (serverData.salesToday || 0) + offToday,
+            recentSales: [...offline.map(o => ({
+                id: o.id, customer_name: o.payment.customerName, method: o.payment.method, date: o.date, total: o.cart.total
+            })), ...(serverData.recentSales || [])].slice(0, 8)
+        };
+    }
+
+    function updateDashboardUI(stats, products) {
+        document.getElementById('statTotalSales').innerText = '₹' + Math.round(stats.totalSales).toLocaleString();
+        document.getElementById('statCustomers').innerText = stats.customerCount;
+        document.getElementById('statLowStock').innerText = stats.lowStock;
+        document.getElementById('statSalesToday').innerText = '₹' + Math.round(stats.salesToday).toLocaleString();
+        document.getElementById('salesCount').innerText = `Across ${stats.recentSales.length} transactions`;
+
+        // Process Expiry Alerts
+        const alertList = document.getElementById('expiryAlertList');
+        const alertSection = document.getElementById('inventoryAlertSection');
+        alertList.innerHTML = '';
+        
+        const today = new Date();
+        const next30Days = new Date();
+        next30Days.setDate(today.getDate() + 30);
+
+        const expiringItems = products.filter(p => {
+            if(!p.expiry_date) return false;
+            const ex = new Date(p.expiry_date);
+            return ex <= next30Days;
+        });
+
+        if(expiringItems.length > 0) {
+            alertSection.style.display = 'block';
+            expiringItems.forEach(p => {
+                const ex = new Date(p.expiry_date);
+                const diffDays = Math.ceil((ex - today) / (1000 * 60 * 60 * 24));
+                const color = diffDays <= 7 ? '#EF4444' : '#F59E0B';
+                
+                const div = document.createElement('div');
+                div.style.cssText = `background:var(--bg-surface); padding:12px 16px; border-radius:8px; border-left:4px solid ${color}; display:flex; justify-content:space-between; align-items:center;`;
+                div.innerHTML = `
+                    <div>
+                        <div style="font-weight:700; font-size:0.85rem;">${p.name}</div>
+                        <div style="font-size:0.75rem; color:var(--text-muted);">ID: ${p.id} • Stock: ${p.qty}</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:0.7rem; font-weight:800; color:${color};">${diffDays <= 0 ? 'EXPIRED' : 'EXPIRES IN ' + diffDays + ' DAYS'}</div>
+                        <div style="font-size:0.65rem; color:var(--text-muted);">${p.expiry_date}</div>
+                    </div>
+                `;
+                alertList.appendChild(div);
+            });
+        } else {
+            alertSection.style.display = 'none';
+        }
+
+        // Transactions Table
+        const tbody = document.getElementById('recentSalesBody');
+        if(stats.recentSales.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="padding:60px; text-align:center; color:var(--text-muted);">No recent transactions recorded.</td></tr>';
+        } else {
+            tbody.innerHTML = stats.recentSales.map(s => `
+                <tr style="border-bottom:1px solid var(--border);">
+                    <td style="padding:16px 24px; font-family:monospace; color:var(--text-sub);">${s.id || '#INV-000'}</td>
+                    <td style="padding:16px 24px; font-weight:600;">${s.customer_name || 'Walk-in'}</td>
+                    <td style="padding:16px 24px;"><span style="background:var(--input-bg); padding:4px 10px; border-radius:12px; font-size:0.7rem; font-weight:700;">${s.method || 'Cash'}</span></td>
+                    <td style="padding:16px 24px; font-size:0.85rem; color:var(--text-muted);">${new Date(s.date).toLocaleDateString()}</td>
+                    <td style="padding:16px 24px; text-align:right; font-weight:700; color:var(--primary);">₹${(s.total || 0).toLocaleString()}</td>
+                </tr>
+            `).join('');
+        }
+
+        renderCharts(stats.revenueChart, products);
+    }
+
+    function renderCharts(revData, products) {
+        const revCtx = document.getElementById('revenueChart').getContext('2d');
+        new Chart(revCtx, {
+            type: 'line',
+            data: {
+                labels: revData?.labels || ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+                datasets: [{
+                    label: 'Revenue',
+                    data: revData?.data || [0,0,0,0,0,0,0],
+                    borderColor: '#D4AF37',
+                    backgroundColor: 'rgba(212, 175, 55, 0.1)',
+                    tension: 0.4, fill: true, pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9CA3AF' } },
+                    x: { grid: { display: false }, ticks: { color: '#9CA3AF' } }
+                }
+            }
+        });
+
+        const catCounts = {};
+        products.forEach(p => { catCounts[p.category || 'General'] = (catCounts[p.category || 'General'] || 0) + 1; });
+        
+        const catLabels = Object.keys(catCounts).length > 0 ? Object.keys(catCounts) : ['No Data'];
+        const catValues = Object.values(catCounts).length > 0 ? Object.values(catCounts) : [1];
+
+        const catCtx = document.getElementById('categoryChart').getContext('2d');
+        new Chart(catCtx, {
+            type: 'doughnut',
+            data: {
+                labels: catLabels,
+                datasets: [{
+                    data: catValues,
+                    backgroundColor: ['#D4AF37', '#3B82F6', '#10B981', '#EF4444', '#8B5CF6'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom', labels: { color: '#9CA3AF', padding: 10, boxWidth: 12 } } }
+            }
+        });
+    }
+</script>
+</body>
+</html>

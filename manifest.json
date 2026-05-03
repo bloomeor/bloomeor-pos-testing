@@ -1,0 +1,24 @@
+{
+  "name": "Bloomeor POS",
+  "short_name": "Bloomeor",
+  "description": "Professional Point of Sale & Inventory Management System",
+  "start_url": "main/html/dashboard.html",
+  "display": "standalone",
+  "background_color": "#030712",
+  "theme_color": "#D4AF37",
+  "icons": [
+    {
+      "src": "main/images/logo/Bloomeor-logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "main/images/logo/Bloomeor-logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "orientation": "any",
+  "scope": "/"
+}

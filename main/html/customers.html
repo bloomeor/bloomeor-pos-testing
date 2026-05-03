@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <base target="_top">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bloomeor POS — Customers</title>
+    <link rel="icon" type="image/x-icon" href="../images/logo/Bloomeor-logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="../css/styles.css">
+    <script>
+        (function() {
+            const settings = JSON.parse(localStorage.getItem('bloomeor_settings') || '{}');
+            if (settings.appTheme === 'light') {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+    <link rel="manifest" href="../../manifest.json">
+</head>
+<body>
+
+<div id="customAlert"><strong id="alertTitle">Info</strong><p id="alertMsg"></p></div>
+
+<div id="app-layout">
+    <div class="sidebar" id="sidebar">
+        <div class="logo">
+            <img src="../images/logo/Bloomeor-logo.png" alt="Logo" style="max-height:38px;width:auto;filter:drop-shadow(0 0 8px rgba(212,175,55,0.3));" onerror="this.style.display='none';">
+            <span style="margin-left:6px;color:var(--text-primary);font-size:1.5rem;font-weight:700;letter-spacing:-0.05em;">Bloomeor</span>
+        </div>
+        <div class="nav-header">NAVIGATION</div>
+        <div id="navMenu">
+            <a class="nav-link" href="dashboard.html"><i class="ph ph-chart-line-up"></i> Dashboard</a>
+            <a class="nav-link" href="pos.html"><i class="ph ph-cash-register"></i> POS / New Sale</a>
+            <a class="nav-link" href="sales.html"><i class="ph ph-receipt"></i> Sales List</a>
+            <a class="nav-link active" href="customers.html"><i class="ph ph-users"></i> Customers</a>
+            <a class="nav-link" href="inventory.html"><i class="ph ph-package"></i> Inventory</a>
+            <a class="nav-link" href="purchases.html"><i class="ph ph-shopping-cart"></i> Purchases</a>
+            <a class="nav-link" href="suppliers.html"><i class="ph ph-handshake"></i> Suppliers</a>
+            <a class="nav-link" href="payments.html"><i class="ph ph-money"></i> Payments</a>
+            <a class="nav-link" href="expenses.html"><i class="ph ph-file-text"></i> Expenses</a>
+            <a class="nav-link" href="reminders.html"><i class="ph-fill ph-bell" style="color:#EF4444;"></i> Due Reminders</a>
+            <a class="nav-link" href="reports.html"><i class="ph ph-chart-bar"></i> Reports</a>
+            <a class="nav-link" href="settings.html"><i class="ph ph-gear"></i> Settings</a>
+        </div>
+
+        <div class="nav-header" style="margin-top: auto;">SUPPORT</div>
+        <div style="padding: 10px 24px; color: var(--text-muted); font-size: 0.85rem;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                <i class="ph ph-phone" style="color: var(--primary);"></i>
+                <span>9902356539</span>
+            </div>
+            <div style="font-size: 0.7rem; opacity: 0.6;">Customer Care</div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="topbar">
+            <h3 style="color:var(--text-sub)">Customer Relationship Management</h3>
+            <div style="display:flex;gap:15px;align-items:center;">
+                <button class="btn-gold" onclick="openCustomerModal()" style="height:38px;padding:0 18px;font-size:0.85rem;display:flex;align-items:center;gap:8px;">
+                    <i class="ph ph-user-plus"></i> New Customer
+                </button>
+            </div>
+        </div>
+
+        <div class="view-container">
+        <div class="page-view active" style="display:block;animation:none;">
+
+            <!-- Header -->
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+                <div>
+                    <h2 style="font-size:1.75rem;font-weight:700;">Customers</h2>
+                    <p style="color:var(--text-muted);margin-top:4px;">Manage your client base and their loyalty.</p>
+                </div>
+                <button class="btn-gold" style="background:transparent;border:1px solid var(--border);color:white;" onclick="exportCustomers()">
+                    <i class="ph ph-file-xls" style="color:#10B981;"></i> Export to Excel
+                </button>
+            </div>
+
+            <!-- Stats Row -->
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;">
+                <div class="card" style="padding:16px;background:rgba(212,175,55,0.05);border:1px solid rgba(212,175,55,0.2);">
+                    <p style="font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;">Total Customers</p>
+                    <h3 id="statTotalCust" style="font-size:1.5rem;margin-top:5px;color:var(--primary);">0</h3>
+                </div>
+                <div class="card" style="padding:16px;background:rgba(16,185,129,0.05);border:1px solid rgba(16,185,129,0.2);">
+                    <p style="font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;">Active This Month</p>
+                    <h3 id="statActiveMonth" style="font-size:1.5rem;margin-top:5px;color:#10B981;">0</h3>
+                </div>
+                <div class="card" style="padding:16px;background:rgba(59,130,246,0.05);border:1px solid rgba(59,130,246,0.2);">
+                    <p style="font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;">Top Category</p>
+                    <h3 id="statTopCat" style="font-size:1.5rem;margin-top:5px;color:#3B82F6;">General</h3>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="card" style="margin-bottom:20px;padding:15px;display:flex;gap:12px;">
+                <div style="position:relative;flex:1;">
+                    <i class="ph ph-magnifying-glass" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);"></i>
+                    <input type="text" id="custSearch" oninput="filterCustomers()" placeholder="Search by name, phone, or email..." style="padding-left:40px;margin-top:0;background:rgba(0,0,0,0.2);">
+                </div>
+                <select id="catFilter" onchange="filterCustomers()" style="width:180px;margin-top:0;background:rgba(0,0,0,0.2);">
+                    <option value="all">All Categories</option>
+                    <option value="General">General</option>
+                    <option value="VIP">VIP</option>
+                    <option value="Corporate">Corporate</option>
+                    <option value="Loyal">Loyal</option>
+                </select>
+                <button class="btn-gold" style="background:transparent;border:1px solid var(--border);color:white;width:48px;padding:0;" onclick="loadCustomers()">
+                    <i class="ph ph-arrows-clockwise"></i>
+                </button>
+            </div>
+
+            <!-- Table -->
+            <div class="card" style="padding:0;overflow:hidden;">
+                <table style="width:100%;border-collapse:collapse;text-align:left;">
+                    <thead>
+                        <tr style="background:rgba(255,255,255,0.02);color:var(--text-muted);font-size:0.78rem;text-transform:uppercase;">
+                            <th style="padding:14px 20px;font-weight:600;">ID</th>
+                            <th style="padding:14px 20px;font-weight:600;">Customer Name</th>
+                            <th style="padding:14px 20px;font-weight:600;">Phone</th>
+                            <th style="padding:14px 20px;font-weight:600;">Category</th>
+                            <th style="padding:14px 20px;font-weight:600;">Email</th>
+                            <th style="padding:14px 20px;font-weight:600;text-align:right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="customerTableBody">
+                        <tr><td colspan="6" style="padding:50px;text-align:center;color:var(--text-muted);">
+                            <i class="ph ph-spinner ph-spin" style="font-size:2rem;display:block;margin:0 auto 10px;"></i>
+                            Loading customers...
+                        </td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add/Edit Modal -->
+<div class="modal-overlay" id="customerModal" style="display:none;">
+    <div class="modal-card" style="max-width:500px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;border-bottom:1px solid var(--border);padding-bottom:15px;">
+            <h3 id="modalTitle" style="margin:0;">New Customer</h3>
+            <i class="ph ph-x" style="cursor:pointer;font-size:1.2rem;" onclick="closeCustomerModal()"></i>
+        </div>
+        
+        <form id="customerForm" onsubmit="handleCustomerSubmit(event)">
+            <input type="hidden" id="custId">
+            
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
+                <div>
+                    <label>Full Name *</label>
+                    <input type="text" id="custName" required placeholder="John Doe">
+                </div>
+                <div>
+                    <label>Phone Number *</label>
+                    <input type="text" id="custPhone" required placeholder="9876543210">
+                </div>
+            </div>
+
+            <label>Email Address</label>
+            <input type="email" id="custEmail" placeholder="john@example.com">
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
+                <div>
+                    <label>Category</label>
+                    <select id="custCategory">
+                        <option value="General">General</option>
+                        <option value="VIP">VIP</option>
+                        <option value="Corporate">Corporate</option>
+                        <option value="Loyal">Loyal</option>
+                    </select>
+                </div>
+                <div>
+                    <label>GSTIN (Optional)</label>
+                    <input type="text" id="custGstin" placeholder="27AAAAA0000A1Z5">
+                </div>
+            </div>
+
+            <label>Address</label>
+            <textarea id="custAddress" rows="2" placeholder="Street, City, State, ZIP"></textarea>
+
+            <div style="display:flex;gap:12px;margin-top:25px;">
+                <button type="button" class="btn-gold" style="background:transparent;border:1px solid var(--border);color:white;" onclick="closeCustomerModal()">Cancel</button>
+                <button type="submit" class="btn-gold" id="saveBtn" style="flex:1;">
+                    <i class="ph ph-check-circle"></i> Save Customer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    let customers = [];
+    let filtered  = [];
+
+    const showAlert = (title, msg) => {
+        document.getElementById('alertTitle').innerText = title;
+        document.getElementById('alertMsg').innerText   = msg;
+        const al = document.getElementById('customAlert');
+        al.classList.add('show');
+        setTimeout(() => al.classList.remove('show'), 3500);
+    };
+
+    document.addEventListener('DOMContentLoaded', loadCustomers);
+
+    function loadCustomers() {
+        if (typeof google !== 'undefined') {
+            google.script.run.withSuccessHandler(data => {
+                customers = data || [];
+                applyFilters();
+                updateStats();
+            }).getServerData('customers');
+        } else {
+            // Simulation Mode (Empty by default in real-world integration)
+            customers = [];
+            applyFilters();
+            updateStats();
+        }
+    }
+
+
+    function updateStats() {
+        document.getElementById('statTotalCust').innerText = customers.length;
+        // In real app, you'd filter by createdAt month
+        document.getElementById('statActiveMonth').innerText = customers.filter(c => Math.random() > 0.5).length; 
+        
+        const counts = {};
+        customers.forEach(c => counts[c.category] = (counts[c.category] || 0) + 1);
+        const top = Object.keys(counts).sort((a,b) => counts[b] - counts[a])[0] || 'General';
+        document.getElementById('statTopCat').innerText = top;
+    }
+
+    function filterCustomers() { applyFilters(); }
+
+    function applyFilters() {
+        const q   = document.getElementById('custSearch').value.toLowerCase();
+        const cat = document.getElementById('catFilter').value;
+
+        filtered = customers.filter(c => {
+            const matchQ = !q || 
+                (c.name || '').toLowerCase().includes(q) || 
+                (c.phone || '').toLowerCase().includes(q) || 
+                (c.email || '').toLowerCase().includes(q);
+            const matchC = cat === 'all' || c.category === cat;
+            return matchQ && matchC;
+        });
+
+        renderTable();
+    }
+
+    function renderTable() {
+        const tbody = document.getElementById('customerTableBody');
+        if (filtered.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="padding:50px;text-align:center;color:var(--text-muted);">No customers found.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = filtered.map(c => `
+            <tr style="border-bottom:1px solid var(--border);">
+                <td style="padding:14px 20px;font-family:monospace;font-size:0.8rem;color:var(--primary);">${c.id}</td>
+                <td style="padding:14px 20px;font-weight:600;">${c.name}</td>
+                <td style="padding:14px 20px;">${c.phone}</td>
+                <td style="padding:14px 20px;">
+                    <span style="background:rgba(212,175,55,0.1);color:var(--primary);padding:3px 10px;border-radius:20px;font-size:0.75rem;font-weight:600;">${c.category}</span>
+                </td>
+                <td style="padding:14px 20px;color:var(--text-muted);font-size:0.85rem;">${c.email || '—'}</td>
+                <td style="padding:14px 20px;text-align:right;">
+                    <div style="display:flex;gap:8px;justify-content:flex-end;">
+                        <button class="btn-gold" style="width:34px;height:34px;padding:0;background:rgba(255,255,255,0.05);border:1px solid var(--border);" onclick="openWhatsApp('${c.phone}')" title="Message on WhatsApp">
+                            <i class="ph ph-whatsapp-logo" style="color:#25D366;"></i>
+                        </button>
+                        <button class="btn-gold" style="width:34px;height:34px;padding:0;background:rgba(255,255,255,0.05);border:1px solid var(--border);" onclick="editCustomer('${c.id}')" title="Edit">
+                            <i class="ph ph-pencil-simple"></i>
+                        </button>
+                        <button class="btn-gold" style="width:34px;height:34px;padding:0;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:#EF4444;" onclick="deleteCustomer('${c.id}')" title="Delete">
+                            <i class="ph ph-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function openCustomerModal() {
+        document.getElementById('modalTitle').innerText = 'New Customer';
+        document.getElementById('customerForm').reset();
+        document.getElementById('custId').value = '';
+        document.getElementById('customerModal').style.display = 'flex';
+    }
+
+    function closeCustomerModal() {
+        document.getElementById('customerModal').style.display = 'none';
+    }
+
+    function editCustomer(id) {
+        const c = customers.find(x => x.id === id);
+        if (!c) return;
+
+        document.getElementById('modalTitle').innerText = 'Edit Customer';
+        document.getElementById('custId').value = c.id;
+        document.getElementById('custName').value = c.name;
+        document.getElementById('custPhone').value = c.phone;
+        document.getElementById('custEmail').value = c.email || '';
+        document.getElementById('custCategory').value = c.category || 'General';
+        document.getElementById('custGstin').value = c.gstin || '';
+        document.getElementById('custAddress').value = c.address || '';
+        
+        document.getElementById('customerModal').style.display = 'flex';
+    }
+
+    function handleCustomerSubmit(e) {
+        e.preventDefault();
+        const btn = document.getElementById('saveBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Saving...';
+
+        const data = {
+            id: document.getElementById('custId').value,
+            name: document.getElementById('custName').value,
+            phone: document.getElementById('custPhone').value,
+            email: document.getElementById('custEmail').value,
+            category: document.getElementById('custCategory').value,
+            gstin: document.getElementById('custGstin').value,
+            address: document.getElementById('custAddress').value
+        };
+
+        if (typeof google !== 'undefined') {
+            google.script.run.withSuccessHandler(res => {
+                showAlert(res.success ? 'Success' : 'Error', res.message);
+                if (res.success) {
+                    closeCustomerModal();
+                    loadCustomers();
+                }
+                btn.disabled = false;
+                btn.innerHTML = '<i class="ph ph-check-circle"></i> Save Customer';
+            }).saveCustomer(data);
+        } else {
+            showAlert('Mock Success', 'Customer saved to local state (preview mode).');
+            closeCustomerModal();
+            btn.disabled = false;
+            btn.innerHTML = '<i class="ph ph-check-circle"></i> Save Customer';
+        }
+    }
+
+    function deleteCustomer(id) {
+        if (!confirm('Are you sure you want to delete this customer?')) return;
+        
+        if (typeof google !== 'undefined') {
+            google.script.run.withSuccessHandler(res => {
+                showAlert(res.success ? 'Deleted' : 'Error', res.message);
+                if (res.success) loadCustomers();
+            }).deleteCustomer(id);
+        } else {
+            showAlert('Mock Deleted', 'Customer removed from local state.');
+        }
+    }
+
+    function openWhatsApp(phone) {
+        if (!phone) return showAlert('Error', 'No phone number provided.');
+        const cleanPhone = phone.replace(/\D/g, '');
+        const url = `https://wa.me/${cleanPhone.length === 10 ? '91'+cleanPhone : cleanPhone}`;
+        window.open(url, '_blank');
+    }
+
+    function exportCustomers() {
+        if (customers.length === 0) return showAlert('Error', 'No customer data to export.');
+        const ws = XLSX.utils.json_to_sheet(customers);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Customers");
+        XLSX.writeFile(wb, "Bloomeor_Customers.xlsx");
+        showAlert('Success', 'Customer list exported to Excel.');
+    }
+</script>
+
+</body>
+</html>

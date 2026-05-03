@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <base target="_top">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bloomeor POS — Settings</title>
+    <link rel="icon" type="image/x-icon" href="../images/logo/Bloomeor-logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="../css/styles.css">
+    <script>
+        (function() {
+            const settings = JSON.parse(localStorage.getItem('bloomeor_settings') || '{}');
+            if (settings.appTheme === 'light') {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+    <link rel="manifest" href="../../manifest.json">
+</head>
+<body>
+
+<div id="customAlert"><strong id="alertTitle">Info</strong><p id="alertMsg"></p></div>
+
+<div id="app-layout">
+    <div class="sidebar" id="sidebar">
+        <div class="logo">
+            <img src="../images/logo/Bloomeor-logo.png" alt="Logo" style="max-height:38px;width:auto;filter:drop-shadow(0 0 8px rgba(212,175,55,0.3));" onerror="this.style.display='none';">
+            <span style="margin-left:6px;color:var(--text-primary);font-size:1.5rem;font-weight:700;letter-spacing:-0.05em;">Bloomeor</span>
+        </div>
+        <div class="nav-header">NAVIGATION</div>
+        <div id="navMenu">
+            <a class="nav-link" href="dashboard.html"><i class="ph ph-chart-line-up"></i> Dashboard</a>
+            <a class="nav-link" href="pos.html"><i class="ph ph-cash-register"></i> POS / New Sale</a>
+            <a class="nav-link" href="sales.html"><i class="ph ph-receipt"></i> Sales List</a>
+            <a class="nav-link" href="customers.html"><i class="ph ph-users"></i> Customers</a>
+            <a class="nav-link" href="inventory.html"><i class="ph ph-package"></i> Inventory</a>
+            <a class="nav-link" href="purchases.html"><i class="ph ph-shopping-cart"></i> Purchases</a>
+            <a class="nav-link" href="suppliers.html"><i class="ph ph-handshake"></i> Suppliers</a>
+            <a class="nav-link" href="payments.html"><i class="ph ph-money"></i> Payments</a>
+            <a class="nav-link" href="expenses.html"><i class="ph ph-file-text"></i> Expenses</a>
+            <a class="nav-link" href="reminders.html"><i class="ph-fill ph-bell" style="color:#EF4444;"></i> Due Reminders</a>
+            <a class="nav-link" href="reports.html"><i class="ph ph-chart-bar"></i> Reports</a>
+            <a class="nav-link active" href="settings.html"><i class="ph ph-gear"></i> Settings</a>
+        </div>
+
+        <div class="nav-header" style="margin-top: auto;">SUPPORT</div>
+        <div style="padding: 10px 24px; color: var(--text-muted); font-size: 0.85rem;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                <i class="ph ph-phone" style="color: var(--primary);"></i>
+                <span>9902356539</span>
+            </div>
+            <div style="font-size: 0.7rem; opacity: 0.6;">Customer Care</div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="topbar">
+            <h3 style="color:var(--text-sub)">System Settings</h3>
+            <div style="display:flex;gap:15px;align-items:center;">
+                <span style="font-weight:500;">Admin</span>
+            </div>
+        </div>
+
+        <div class="view-container">
+            <div class="page-view active" style="display:block;animation:none;">
+                
+                <div style="margin-bottom:30px;">
+                    <h2 style="font-size:1.75rem;font-weight:700;">Settings</h2>
+                    <p style="color:var(--text-muted);margin-top:4px;">Configure your business profile and application preferences.</p>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 320px;gap:24px;">
+                    <!-- Main Settings Form -->
+                    <div style="display:grid;gap:24px;">
+                        
+                        <!-- Business Profile -->
+                        <div class="card">
+                            <h4 style="margin-bottom:20px;display:flex;align-items:center;gap:10px;">
+                                <i class="ph ph-storefront" style="color:var(--primary);"></i>
+                                Business Profile
+                            </h4>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+                                <div>
+                                    <label style="font-size:0.8rem;color:var(--text-muted);margin-bottom:6px;display:block;">Business Name</label>
+                                    <input type="text" id="bizName" placeholder="e.g. Bloomeor Retail" value="Bloomeor Retail">
+                                </div>
+                                <div>
+                                    <label style="font-size:0.8rem;color:var(--text-muted);margin-bottom:6px;display:block;">GSTIN (Optional)</label>
+                                    <input type="text" id="bizGstin" placeholder="29XXXXX0000X1Z5">
+                                </div>
+                                <div style="grid-column: span 2;">
+                                    <label style="font-size:0.8rem;color:var(--text-muted);margin-bottom:6px;display:block;">Address</label>
+                                    <input type="text" id="bizAddress" placeholder="Full business address for receipts">
+                                </div>
+                                <div>
+                                    <label style="font-size:0.8rem;color:var(--text-muted);margin-bottom:6px;display:block;">Phone Number</label>
+                                    <input type="text" id="bizPhone" placeholder="+91 99000 00000">
+                                </div>
+                                <div>
+                                    <label style="font-size:0.8rem;color:var(--text-muted);margin-bottom:6px;display:block;">Email Address</label>
+                                    <input type="email" id="bizEmail" placeholder="contact@bloomeor.com">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- System Preferences -->
+                        <div class="card">
+                            <h4 style="margin-bottom:20px;display:flex;align-items:center;gap:10px;">
+                                <i class="ph ph-sliders" style="color:var(--primary);"></i>
+                                Preferences
+                            </h4>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+                                <div>
+                                    <label style="font-size:0.8rem;color:var(--text-muted);margin-bottom:6px;display:block;">Default Tax Rate (%)</label>
+                                    <input type="number" id="defaultTax" value="18">
+                                </div>
+                                <div>
+                                    <label style="font-size:0.8rem;color:var(--text-muted);margin-bottom:6px;display:block;">Currency Symbol</label>
+                                    <input type="text" id="currencySymbol" value="₹">
+                                </div>
+                                <div>
+                                    <label style="font-size:0.8rem;color:var(--text-muted);margin-bottom:6px;display:block;">Receipt Format</label>
+                                    <select id="receiptFormat">
+                                        <option value="A4">A4 Professional</option>
+                                        <option value="Thermal">80mm Thermal</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="font-size:0.8rem;color:var(--text-muted);margin-bottom:6px;display:block;">Auto-Backup to Excel</label>
+                                    <select id="autoBackup">
+                                        <option value="true">Enabled</option>
+                                        <option value="false">Disabled</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="font-size:0.8rem;color:var(--text-muted);margin-bottom:6px;display:block;">Application Theme</label>
+                                    <select id="appTheme" onchange="toggleTheme(this.value)">
+                                        <option value="dark">Dark Mode (Premium)</option>
+                                        <option value="light">Light Mode (Classic)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display:flex;justify-content:flex-end;gap:12px;">
+                            <button class="btn-secondary" style="width:auto;" onclick="loadSettings()">Discard Changes</button>
+                            <button class="btn-gold" style="width:auto;padding:12px 32px;" onclick="saveSettings()">
+                                <i class="ph ph-floppy-disk"></i> Save Settings
+                            </button>
+                        </div>
+
+                    </div>
+
+                    <!-- Sidebar Info / Danger Zone -->
+                    <div style="display:grid;gap:24px;align-content:start;">
+                        <div class="card" style="border-color:rgba(212,175,55,0.2);">
+                            <h4 style="margin-bottom:12px;">System Info</h4>
+                            <div style="font-size:0.85rem;color:var(--text-muted);display:grid;gap:8px;">
+                                <div style="display:flex;justify-content:space-between;">
+                                    <span>Version:</span>
+                                    <span style="color:white;font-weight:600;">2.4.0-Gold</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;">
+                                    <span>Environment:</span>
+                                    <span style="color:#10B981;font-weight:600;">Production</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;">
+                                    <span>Data Sync:</span>
+                                    <span style="color:var(--primary);">Google Sheets</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card" style="border-color:rgba(239,68,68,0.2);">
+                            <h4 style="margin-bottom:12px;color:#EF4444;">Danger Zone</h4>
+                            <p style="font-size:0.75rem;color:var(--text-muted);margin-bottom:15px;">Clear local application cache. This will not delete data from Google Sheets.</p>
+                            <button class="btn-gold" style="background:rgba(239,68,68,0.1);color:#EF4444;border:1px solid rgba(239,68,68,0.2);width:100%;font-size:0.8rem;" onclick="clearCache()">
+                                <i class="ph ph-trash"></i> Reset Local Cache
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const showAlert = (title, msg) => {
+        document.getElementById('alertTitle').innerText = title;
+        document.getElementById('alertMsg').innerText   = msg;
+        const al = document.getElementById('customAlert');
+        al.classList.add('show');
+        setTimeout(() => al.classList.remove('show'), 3500);
+    };
+
+    document.addEventListener('DOMContentLoaded', loadSettings);
+
+    function loadSettings() {
+        if (typeof google !== 'undefined') {
+            google.script.run.withSuccessHandler(settings => {
+                applySettings(settings);
+            }).getServerData('settings');
+        } else {
+            const settings = JSON.parse(localStorage.getItem('bloomeor_settings') || '{}');
+            applySettings(settings);
+        }
+    }
+
+    function applySettings(settings) {
+        if (!settings) return;
+        document.getElementById('bizName').value = settings.bizName || 'Bloomeor Retail';
+        document.getElementById('bizGstin').value = settings.bizGstin || '';
+        document.getElementById('bizAddress').value = settings.bizAddress || '';
+        document.getElementById('bizPhone').value = settings.bizPhone || '';
+        document.getElementById('bizEmail').value = settings.bizEmail || '';
+        
+        document.getElementById('defaultTax').value = settings.defaultTax || 18;
+        document.getElementById('currencySymbol').value = settings.currencySymbol || '₹';
+        document.getElementById('receiptFormat').value = settings.receiptFormat || 'Thermal';
+        document.getElementById('autoBackup').value = settings.autoBackup !== undefined ? settings.autoBackup : 'true';
+        document.getElementById('appTheme').value = settings.appTheme || 'dark';
+        
+        if (settings.appTheme) toggleTheme(settings.appTheme);
+        
+        // Update local storage too
+        localStorage.setItem('bloomeor_settings', JSON.stringify(settings));
+        showAlert('Settings Synced', 'Configuration has been updated.');
+    }
+
+    function saveSettings() {
+        const settings = {
+            bizName: document.getElementById('bizName').value,
+            bizGstin: document.getElementById('bizGstin').value,
+            bizAddress: document.getElementById('bizAddress').value,
+            bizPhone: document.getElementById('bizPhone').value,
+            bizEmail: document.getElementById('bizEmail').value,
+            defaultTax: document.getElementById('defaultTax').value,
+            currencySymbol: document.getElementById('currencySymbol').value,
+            receiptFormat: document.getElementById('receiptFormat').value,
+            autoBackup: document.getElementById('autoBackup').value,
+            appTheme: document.getElementById('appTheme').value
+        };
+
+        localStorage.setItem('bloomeor_settings', JSON.stringify(settings));
+        
+        // Also save to Google Sheets if available
+        if (typeof google !== 'undefined') {
+            google.script.run.withSuccessHandler(res => {
+                showAlert('Success', 'Settings saved to cloud and locally.');
+            }).saveSettings(settings);
+        } else {
+            showAlert('Success', 'Settings saved locally.');
+        }
+    }
+
+    function clearCache() {
+        if (!confirm('Are you sure you want to clear the local cache? This will reset all UI preferences and cached data, but will NOT delete your sales or products from Google Sheets.')) return;
+        
+        localStorage.clear();
+        showAlert('Cache Cleared', 'The application will now reload.');
+        setTimeout(() => window.location.reload(), 1500);
+    }
+
+    function toggleTheme(theme) {
+        if (theme === 'light') {
+            document.documentElement.setAttribute('data-theme', 'light');
+        } else {
+            document.documentElement.removeAttribute('data-theme');
+        }
+    }
+</script>
+
+</body>
+</html>
