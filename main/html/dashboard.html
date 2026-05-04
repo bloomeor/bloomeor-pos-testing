@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <base target="_top">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bloomeor POS — Dashboard</title>
+    <link rel="icon" type="image/x-icon" href="../images/logo/Bloomeor-logo.png">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="../css/styles.css">
+    <script>
+        (function() {
+            const settings = JSON.parse(localStorage.getItem('bloomeor_settings') || '{}');
+            if (settings.appTheme === 'light') {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+    <link rel="manifest" href="../../manifest.json">
+    <script src="../js/auth.js"></script>
+</head>
+<body>
+
+<div id="customAlert"><strong id="alertTitle">Info</strong><p id="alertMsg"></p></div>
+
+<div id="app-layout">
+    <div class="sidebar" id="sidebar">
+        <div class="logo">
+            <img src="../images/logo/Bloomeor-logo.png" alt="Logo" style="max-height: 38px; width: auto; filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.3));" onerror="this.style.display='none';">
+            <span style="margin-left: 6px; color: var(--text-primary); font-size: 1.5rem; font-weight: 700; letter-spacing: -0.05em;">Bloomeor</span>
+        </div>
+        <div class="nav-header">NAVIGATION</div>
+        <div id="navMenu">
+            <a class="nav-link active" href="dashboard.html" data-permission="view_dashboard"><i class="ph-bold ph-chart-line-up"></i> Dashboard</a>
+            <a class="nav-link" href="pos.html" data-permission="view_pos"><i class="ph-bold ph-cash-register"></i> POS / New Sale</a>
+            <a class="nav-link" href="orders.html" data-permission="view_pos"><i class="ph-bold ph-cooking-pot"></i> Active Orders</a>
+            <a class="nav-link" href="sales.html" data-permission="view_sales"><i class="ph-bold ph-receipt"></i> Sales List</a>
+            <a class="nav-link" href="customers.html" data-permission="view_customers"><i class="ph-bold ph-users"></i> Customers</a>
+            <a class="nav-link" href="inventory.html" data-permission="view_inventory"><i class="ph-bold ph-package"></i> Inventory</a>
+            <a class="nav-link" href="purchases.html" data-permission="view_purchases"><i class="ph-bold ph-shopping-cart"></i> Purchases</a>
+            <a class="nav-link" href="suppliers.html" data-permission="view_suppliers"><i class="ph-bold ph-handshake"></i> Suppliers</a>
+            <a class="nav-link" href="payments.html" data-permission="view_payments"><i class="ph-bold ph-money"></i> Payments</a>
+            <a class="nav-link" href="expenses.html" data-permission="view_expenses"><i class="ph-bold ph-file-text"></i> Expenses</a>
+            <a class="nav-link" href="reminders.html"><i class="ph-fill ph-bell" style="color: #EF4444;"></i> Due Reminders</a>
+            <a class="nav-link" href="reports.html" data-permission="view_reports"><i class="ph-bold ph-chart-bar"></i> Reports</a>
+            <a class="nav-link" href="settings.html" data-permission="admin_only"><i class="ph-bold ph-gear"></i> Settings</a>
+        </div>
+
+        <div class="nav-header" style="margin-top: auto;">HELP & SUPPORT</div>
+        <div style="padding: 16px; margin: 0 16px 20px 16px; background: rgba(var(--glass-white), 0.03); border: 1px solid var(--border); border-radius: 18px; position: relative; overflow: hidden; animation: fadeIn 0.8s ease;">
+            <div style="position: absolute; top: 10px; right: 10px; display: flex; align-items: center; gap: 5px;">
+                <div style="width: 6px; height: 6px; background: #10B981; border-radius: 50%; box-shadow: 0 0 10px #10B981;"></div>
+                <span style="font-size: 0.6rem; color: #10B981; font-weight: 800; letter-spacing: 0.05em;">LIVE</span>
+            </div>
+            <div style="font-size: 0.65rem; color: var(--text-muted); font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px;">Premium Care</div>
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                <div style="width: 36px; height: 36px; background: var(--primary-glow); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1.1rem;">
+                    <i class="ph-bold ph-headset"></i>
+                </div>
+                <div>
+                    <div style="font-weight: 800; font-size: 0.95rem; color: var(--text-primary); letter-spacing: -0.01em;">9902356539</div>
+                    <div style="font-size: 0.65rem; color: var(--text-muted); font-weight: 500;">Concierge Support</div>
+                </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <a href="tel:9902356539" style="text-decoration: none; background: var(--bg-surface); border: 1px solid var(--border); padding: 8px; border-radius: 10px; color: var(--text-primary); font-size: 0.7rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px; transition: var(--transition);">
+                    <i class="ph-bold ph-phone-call"></i> Call
+                </a>
+                <a href="https://wa.me/919902356539" target="_blank" style="text-decoration: none; background: rgba(37, 211, 102, 0.08); border: 1px solid rgba(37, 211, 102, 0.2); padding: 8px; border-radius: 10px; color: #25D366; font-size: 0.7rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px; transition: var(--transition);">
+                    <i class="ph-bold ph-whatsapp-logo"></i> Chat
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="topbar">
+            <div>
+                <h2 style="font-size: 1.25rem; font-weight: 800; letter-spacing: -0.02em; color: var(--text-primary); margin: 0;">Business Insights</h2>
+                <p style="font-size: 0.75rem; color: var(--text-muted); margin: 2px 0 0 0;">Real-time intelligence and analytics</p>
+            </div>
+                        <div style="display:flex; gap: 15px; align-items: center;">
+                <div style="display: flex; flex-direction: column; align-items: flex-end; padding-right: 15px; border-right: 1px solid var(--border);">
+                    <span id="topbarBizName" style="font-weight: 800; color: var(--primary); font-size: 0.9rem; letter-spacing: -0.01em;">Bloomeor Retail</span>
+                    <span style="font-size: 0.6rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Authorized Outlet</span>
+                </div>
+                <div style="display: flex; flex-direction: column; align-items: flex-end;">
+                    <span id="userNameHeader" style="font-weight: 700; color: var(--text-primary); font-size: 0.9rem;">System Admin</span>
+                    <span style="font-size: 0.65rem; color: #10B981; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">● Active Session</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="view-container">
+            <div class="page-view active" style="display:block; animation:none; height:100%;">
+                
+                <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px;">
+                    <div>
+                        <h2 style="font-size: 1.75rem; font-weight: 800; letter-spacing: -0.02em; color: var(--text-primary);">Performance Overview</h2>
+                        <p style="color: var(--text-muted); margin-top: 4px; font-size: 0.9rem;">Real-time business health and inventory alerts.</p>
+                    </div>
+                    <button class="btn-gold" style="height: 48px; border-radius: 14px;" onclick="refreshDashboard()">
+                        <i class="ph-bold ph-arrows-clockwise"></i> REFRESH DATA
+                    </button>
+                </div>
+
+                <!-- KPI Cards -->
+                <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px; margin-bottom: 32px;">
+                    <div class="premium-panel" style="padding: 24px; position: relative;">
+                        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, var(--primary), transparent);"></div>
+                        <p style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; font-weight:800; letter-spacing:0.08em;">Total Revenue</p>
+                        <h3 id="statTotalSales" style="font-size:1.75rem; margin-top:12px; font-weight:800; color: var(--text-primary);">₹0</h3>
+                        <div id="revenueTrend" style="font-size:0.75rem; color:#10B981; margin-top:12px; font-weight:700; display:flex; align-items:center; gap:4px;">
+                            <i class="ph-bold ph-trend-up"></i> 0% vs yesterday
+                        </div>
+                    </div>
+                    <div class="premium-panel" style="padding: 24px; position: relative;">
+                        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, #3B82F6, transparent);"></div>
+                        <p style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; font-weight:800; letter-spacing:0.08em;">Sales Today</p>
+                        <h3 id="statSalesToday" style="font-size:1.75rem; margin-top:12px; font-weight:800; color: var(--text-primary);">₹0</h3>
+                        <div id="salesCount" style="font-size:0.75rem; color:var(--text-muted); margin-top:12px;">0 transactions</div>
+                    </div>
+                    <div class="premium-panel" style="padding: 24px; position: relative;">
+                        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, #F59E0B, transparent);"></div>
+                        <p style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; font-weight:800; letter-spacing:0.08em;">Active KOT</p>
+                        <h3 id="statActiveKOT" style="font-size:1.75rem; margin-top:12px; font-weight:800; color: #F59E0B;">0</h3>
+                        <div style="font-size:0.75rem; color:#F59E0B; margin-top:12px; font-weight:700;">Live in Kitchen</div>
+                    </div>
+                    <div class="premium-panel" style="padding: 24px; position: relative;">
+                        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, #10B981, transparent);"></div>
+                        <p style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; font-weight:800; letter-spacing:0.08em;">Customers</p>
+                        <h3 id="statCustomers" style="font-size:1.75rem; margin-top:12px; font-weight:800; color: var(--text-primary);">0</h3>
+                        <div style="font-size:0.75rem; color:#10B981; margin-top:12px; font-weight:700;">Community</div>
+                    </div>
+                    <div class="premium-panel" style="padding: 24px; position: relative;">
+                        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, #EF4444, transparent);"></div>
+                        <p style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; font-weight:800; letter-spacing:0.08em;">Low Stock</p>
+                        <h3 id="statLowStock" style="font-size:1.75rem; margin-top:12px; font-weight:800; color:#EF4444;">0</h3>
+                        <div style="font-size:0.75rem; color:#EF4444; margin-top:12px; font-weight:700;">Restock Alert</div>
+                    </div>
+                </div>
+
+                <!-- Alert Section: Expiry & Inventory -->
+                <div id="inventoryAlertSection" style="display:none; margin-bottom:32px;">
+                    <div class="premium-panel" style="background:rgba(239,68,68,0.03) !important; border:1px solid rgba(239,68,68,0.2) !important; padding:24px;">
+                        <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px; color:#EF4444;">
+                            <i class="ph-bold ph-warning-diamond" style="font-size:1.5rem;"></i>
+                            <h4 style="font-weight:800; text-transform:uppercase; letter-spacing:0.05em; font-size:0.9rem;">Critical Inventory Alerts</h4>
+                        </div>
+                        <div id="expiryAlertList" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:15px;">
+                            <!-- Alerts injected here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts -->
+                <div style="display: grid; grid-template-columns: 1.8fr 1.2fr; gap: 24px; margin-bottom: 32px;">
+                    <div class="premium-panel" style="min-height: 400px; padding: 32px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+                            <h4 style="font-weight: 800; font-size: 1.1rem; letter-spacing: 0.02em;">Revenue Performance</h4>
+                            <div style="display:flex; gap:8px; align-items:center;">
+                                <div style="font-size:0.7rem; color:var(--text-muted); font-weight:700; background:rgba(255,255,255,0.03); padding:4px 10px; border-radius:20px; border:1px solid var(--border);">Last 7 Days</div>
+                                <div id="revenueForecast" style="font-size:0.7rem; color:var(--primary); font-weight:800; background:rgba(226, 194, 117, 0.1); padding:4px 10px; border-radius:20px; border:1px solid rgba(226, 194, 117, 0.2);">Forecast: ₹0</div>
+                            </div>
+                        </div>
+                        <canvas id="revenueChart" style="max-height: 320px;"></canvas>
+                    </div>
+                    <div class="premium-panel" style="min-height: 400px; padding: 32px;">
+                        <h4 style="font-weight: 800; margin-bottom: 24px; font-size: 1.1rem; letter-spacing: 0.02em;">Stock Composition</h4>
+                        <canvas id="categoryChart" style="max-height: 320px;"></canvas>
+                    </div>
+                </div>
+
+                <!-- Recent Sales -->
+                <div class="premium-panel" style="padding: 0;">
+                    <div style="padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                        <h4 style="font-weight: 700;">Recent Transactions</h4>
+                        <a href="sales.html" class="btn-secondary" style="padding: 6px 12px; font-size: 0.75rem;" data-permission="view_sales">View All Sales</a>
+                    </div>
+                    <div style="overflow-x:auto;">
+                        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                            <thead>
+                                <tr style="background: rgba(255, 255, 255, 0.02); color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em;">
+                                    <th style="padding: 18px 24px; font-weight: 800; border-bottom: 1px solid var(--border);">Order ID</th>
+                                    <th style="padding: 18px 24px; font-weight: 800; border-bottom: 1px solid var(--border);">Customer</th>
+                                    <th style="padding: 18px 24px; font-weight: 800; border-bottom: 1px solid var(--border);">Business</th>
+                                    <th style="padding: 18px 24px; font-weight: 800; border-bottom: 1px solid var(--border);">Method</th>
+                                    <th style="padding: 18px 24px; font-weight: 800; border-bottom: 1px solid var(--border);">Date</th>
+                                    <th style="padding: 18px 24px; font-weight: 800; border-bottom: 1px solid var(--border); text-align: right;">Total Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentSalesBody" style="font-size: 0.95rem;">
+                                <tr><td colspan="6" style="padding: 60px; text-align: center; color: var(--text-muted);">
+                                    <i class="ph-bold ph-spinner ph-spin" style="font-size: 2rem; display: block; margin: 0 auto 12px;"></i>
+                                    Syncing transaction history...
+                                </td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        refreshDashboard();
+    });
+
+    function refreshDashboard() {
+        if (typeof google !== 'undefined') {
+            google.script.run.withSuccessHandler(data => {
+                google.script.run.withSuccessHandler(products => {
+                    const mergedData = mergeOfflineSales(data);
+                    updateDashboardUI(mergedData, products);
+                }).getServerData('products');
+            }).getServerData('dashboardStats');
+        } else {
+            // Local Simulation
+            const stats = JSON.parse(localStorage.getItem('dashboard_stats') || '{"totalSales":0,"salesToday":0,"customerCount":0,"lowStock":0,"recentSales":[],"revenueChart":{"labels":[],"data":[]}}');
+            const products = JSON.parse(localStorage.getItem('products') || '[]');
+            updateDashboardUI(mergeOfflineSales(stats), products);
+        }
+    }
+
+    function generateRealtimeRevenue() {
+        const allSales = JSON.parse(localStorage.getItem('all_sales') || '[]');
+        const labels = [];
+        const data = [];
+        const today = new Date();
+        
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date(today);
+            d.setDate(d.getDate() - i);
+            labels.push(d.toLocaleDateString('en-US', { weekday: 'short' }));
+            const matchStr = d.toDateString();
+            
+            const dayTotal = allSales.reduce((sum, s) => {
+                if (new Date(s.date).toDateString() === matchStr) {
+                    const amt = s.total || s.cart?.total || 0;
+                    return sum + amt;
+                }
+                return sum;
+            }, 0);
+            
+            data.push(dayTotal);
+        }
+        return { labels, data };
+    }
+
+    function mergeOfflineSales(serverData) {
+        const allSales = JSON.parse(localStorage.getItem('all_sales') || '[]');
+        const kot = JSON.parse(localStorage.getItem('bloomeor_active_orders') || '[]');
+        const products = JSON.parse(localStorage.getItem('products') || '[]');
+        
+        let total = 0, todayTotal = 0, yesterdayTotal = 0;
+        const todayStr = new Date().toDateString();
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStr = yesterday.toDateString();
+
+        allSales.forEach(s => {
+            const amt = s.total || s.cart?.total || 0;
+            const dateStr = new Date(s.date).toDateString();
+            total += amt;
+            if(dateStr === todayStr) todayTotal += amt;
+            if(dateStr === yesterdayStr) yesterdayTotal += amt;
+        });
+
+        // Growth Algorithm
+        let growthRate = 0;
+        if (yesterdayTotal > 0) {
+            growthRate = ((todayTotal - yesterdayTotal) / yesterdayTotal) * 100;
+        }
+
+        // Forecasting Algorithm (3-Day Weighted Moving Average)
+        const realtimeRev = generateRealtimeRevenue();
+        const last3Days = realtimeRev.data.slice(-3);
+        const forecast = last3Days.length > 0 ? (last3Days.reduce((a,b) => a+b, 0) / last3Days.length) * 1.05 : 0; // +5% optimistic forecast
+
+        // Store Health Algorithm
+        const lowStockCount = products.filter(p => (p.stock || 0) <= (p.min_stock || 5)).length;
+        const healthScore = Math.max(0, 100 - (lowStockCount * 2) + (growthRate / 10));
+
+        return {
+            ...serverData,
+            totalSales: total,
+            salesToday: todayTotal,
+            yesterdaySales: yesterdayTotal,
+            growthRate: growthRate.toFixed(1),
+            forecast: forecast,
+            healthScore: Math.min(100, Math.round(healthScore)),
+            activeKOT: kot.length,
+            lowStock: lowStockCount,
+            revenueChart: realtimeRev,
+            recentSales: allSales.slice(0, 8).map(o => ({
+                id: o.id, 
+                customer_name: o.customer_name || o.payment?.customerName || 'Walk-in', 
+                customer_business: o.customer_business || o.payment?.customerBusiness || '-', 
+                method: o.method || o.payment?.method || 'Cash', 
+                date: o.date, 
+                total: o.total || o.cart?.total || 0
+            }))
+        };
+    }
+
+    function updateDashboardUI(stats, products) {
+        document.getElementById('statTotalSales').innerText = '₹' + Math.round(stats.totalSales).toLocaleString();
+        document.getElementById('statCustomers').innerText = stats.customerCount || stats.recentSales.length;
+        document.getElementById('statLowStock').innerText = stats.lowStock;
+        document.getElementById('statSalesToday').innerText = '₹' + Math.round(stats.salesToday).toLocaleString();
+        document.getElementById('statActiveKOT').innerText = stats.activeKOT || 0;
+        document.getElementById('salesCount').innerText = `${stats.recentSales.length} transactions`;
+
+        // Growth Indicator Logic
+        const growthEl = document.getElementById('revenueTrend');
+        if (stats.growthRate > 0) {
+            growthEl.innerHTML = `<i class="ph-bold ph-trend-up"></i> +${stats.growthRate}% vs yesterday`;
+            growthEl.style.color = '#10B981';
+        } else if (stats.growthRate < 0) {
+            growthEl.innerHTML = `<i class="ph-bold ph-trend-down"></i> ${Math.abs(stats.growthRate)}% vs yesterday`;
+            growthEl.style.color = '#EF4444';
+        } else {
+            growthEl.innerHTML = `<i class="ph-bold ph-minus"></i> Stable vs yesterday`;
+            growthEl.style.color = 'var(--text-muted)';
+        }
+
+        // Forecast Display
+        const forecastEl = document.getElementById('revenueForecast');
+        if (forecastEl) {
+            forecastEl.innerText = `Forecast: ₹${Math.round(stats.forecast).toLocaleString()}`;
+        }
+
+        // Process Expiry Alerts
+        const alertList = document.getElementById('expiryAlertList');
+        const alertSection = document.getElementById('inventoryAlertSection');
+        alertList.innerHTML = '';
+        
+        const today = new Date();
+        const next30Days = new Date();
+        next30Days.setDate(today.getDate() + 30);
+
+        const expiringItems = products.filter(p => {
+            if(!p.expiry_date) return false;
+            const ex = new Date(p.expiry_date);
+            return ex <= next30Days;
+        });
+
+        if(expiringItems.length > 0) {
+            alertSection.style.display = 'block';
+            expiringItems.forEach(p => {
+                const ex = new Date(p.expiry_date);
+                const diffDays = Math.ceil((ex - today) / (1000 * 60 * 60 * 24));
+                const color = diffDays <= 7 ? '#EF4444' : '#F59E0B';
+                
+                const div = document.createElement('div');
+                div.style.cssText = `background:var(--bg-surface); padding:12px 16px; border-radius:8px; border-left:4px solid ${color}; display:flex; justify-content:space-between; align-items:center;`;
+                div.innerHTML = `
+                    <div>
+                        <div style="font-weight:700; font-size:0.85rem;">${p.name}</div>
+                        <div style="font-size:0.75rem; color:var(--text-muted);">ID: ${p.id} • Stock: ${p.qty}</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:0.7rem; font-weight:800; color:${color};">${diffDays <= 0 ? 'EXPIRED' : 'EXPIRES IN ' + diffDays + ' DAYS'}</div>
+                        <div style="font-size:0.65rem; color:var(--text-muted);">${p.expiry_date}</div>
+                    </div>
+                `;
+                alertList.appendChild(div);
+            });
+        } else {
+            alertSection.style.display = 'none';
+        }
+
+        // Transactions Table
+        const tbody = document.getElementById('recentSalesBody');
+        if(stats.recentSales.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="padding:60px; text-align:center; color:var(--text-muted);">No recent transactions recorded.</td></tr>';
+        } else {
+            tbody.innerHTML = stats.recentSales.map(s => `
+                <tr style="border-bottom:1px solid var(--border);">
+                    <td style="padding:16px 24px; font-family:monospace; color:var(--text-sub);">${s.id || '#INV-000'}</td>
+                    <td style="padding:16px 24px; font-weight:600;">${s.customer_name || 'Walk-in'}</td>
+                    <td style="padding:16px 24px; color:var(--text-muted);">${s.customer_business || '-'}</td>
+                    <td style="padding:16px 24px;"><span style="background:var(--input-bg); padding:4px 10px; border-radius:12px; font-size:0.7rem; font-weight:700;">${s.method || 'Cash'}</span></td>
+                    <td style="padding:16px 24px; font-size:0.85rem; color:var(--text-muted);">${new Date(s.date).toLocaleDateString()}</td>
+                    <td style="padding:16px 24px; text-align:right; font-weight:700; color:var(--primary);">₹${(s.total || 0).toLocaleString()}</td>
+                </tr>
+            `).join('');
+        }
+
+        renderCharts(stats.revenueChart, products);
+    }
+
+    function renderCharts(revData, products) {
+        const revCtx = document.getElementById('revenueChart').getContext('2d');
+        const catCtx = document.getElementById('categoryChart').getContext('2d');
+        
+        Chart.defaults.font.family = "'Outfit', sans-serif";
+        Chart.defaults.color = '#64748B';
+
+        if(window.myRevChart) window.myRevChart.destroy();
+        if(window.myCatChart) window.myCatChart.destroy();
+
+        window.myRevChart = new Chart(revCtx, {
+            type: 'line',
+            data: {
+                labels: revData?.labels || ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+                datasets: [{
+                    label: 'Revenue',
+                    data: revData?.data || [0,0,0,0,0,0,0],
+                    borderColor: '#E2C275',
+                    backgroundColor: 'rgba(226, 194, 117, 0.15)',
+                    tension: 0.4, fill: true, pointRadius: 4, pointBackgroundColor: '#E2C275', pointBorderWidth: 2, pointBorderColor: '#020617'
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { grid: { color: 'rgba(255,255,255,0.05)' }, border: { display: false }, ticks: { font: { weight: 600 } } },
+                    x: { grid: { display: false }, border: { display: false }, ticks: { font: { weight: 600 } } }
+                }
+            }
+        });
+
+        const catCounts = {};
+        products.forEach(p => { catCounts[p.category || 'General'] = (catCounts[p.category || 'General'] || 0) + 1; });
+        
+        const catLabels = Object.keys(catCounts).length > 0 ? Object.keys(catCounts) : ['No Data'];
+        const catValues = Object.values(catCounts).length > 0 ? Object.values(catCounts) : [1];
+
+        window.myCatChart = new Chart(catCtx, {
+            type: 'doughnut',
+            data: {
+                labels: catLabels,
+                datasets: [{
+                    data: catValues,
+                    backgroundColor: ['#E2C275', '#3B82F6', '#10B981', '#8B5CF6', '#F43F5E'],
+                    borderWidth: 2,
+                    borderColor: '#020617',
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                cutout: '75%',
+                plugins: { legend: { position: 'bottom', labels: { font: { weight: 600 }, padding: 20, usePointStyle: true, pointStyle: 'circle' } } }
+            }
+        });
+    }
+</script>
+<script>
+    // Update Topbar Business Name
+    document.addEventListener('DOMContentLoaded', () => {
+        const bizName = localStorage.getItem('bloomeor_biz_name') || 'Bloomeor Retail';
+        const bizElements = document.querySelectorAll('#topbarBizName');
+        bizElements.forEach(el => el.innerText = bizName);
+    });
+</script>
+</body>
+</html>
