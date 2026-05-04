@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<!--
+ * =========================================================
+ * Bloomeor POS - Client SPA
+ * Description: Client-side SPA, UI, CSS, and Logic
+ * Features: WhatsApp Integration, Email Integration
+ * =========================================================
+-->
+<html lang="en">
+<head>
+    <base target="_top">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bloomeor POS</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="../images/logo/Bloomeor-logo.png">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+
+    <link rel="stylesheet" href="../css/styles.css">
+    <style>
+        .cat-pill { 
+            background: rgba(255,255,255,0.05); border: 1px solid var(--border); 
+            color: var(--text-muted); padding: 6px 14px; border-radius: 30px; 
+            font-size: 0.65rem; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            white-space: nowrap; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+        }
+        .cat-pill:hover { background: rgba(255,255,255,0.1); color: white; transform: translateY(-1px); }
+        .cat-pill.active { background: var(--primary); color: #000; border-color: var(--primary); box-shadow: 0 0 15px var(--primary-glow); }
+
+        .pos-item {
+            background: var(--bg-surface-raised); border: 1px solid var(--border);
+            backdrop-filter: blur(12px); padding: 14px 10px; border-radius: 14px; cursor: pointer;
+            text-align: center; transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+            position: relative; overflow: hidden; height: 150px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .pos-item:hover {
+            border-color: var(--primary); transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.4), 0 0 10px rgba(212, 175, 55, 0.2);
+            background: rgba(212, 175, 55, 0.05);
+        }
+        .pos-item h4 {
+            color: var(--text-primary); font-size: 0.85rem; font-weight: 700; margin-bottom: 4px;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+            line-height: 1.3; letter-spacing: -0.01em;
+        }
+        .pos-item p { color: var(--primary); font-size: 1rem; font-weight: 800; margin: 4px 0; letter-spacing: -0.02em; }
+        .pos-item small { color: var(--text-muted); font-size: 0.6rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+        
+        input {
+            background: var(--input-bg);
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 14px;
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+        input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.1);
+            background: var(--bg-surface);
+        }
+        .pos-item .price { color: var(--primary); font-size: 1.25rem; font-weight: 800; letter-spacing: -0.02em; }
+        .pos-item .stock { font-size: 0.7rem; font-weight: 600; opacity: 0.6; }
+        
+        /* Cart Item Redesign - Compact Fidelity */
+        .cart-item {
+            background: var(--bg-surface-raised);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: var(--transition);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            min-width: 520px;
+        }
+        .cart-item:hover {
+            border-color: var(--primary);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+        
+        .cart-item-img {
+            width: 40px; height: 40px;
+            background: rgba(var(--glass-white), 0.03);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden; flex-shrink: 0;
+            border: 1px solid var(--border);
+        }
+        .cart-item-img i { font-size: 1.2rem; color: var(--primary); opacity: 0.8; }
+
+        .cart-item-info { 
+            flex: 1; 
+            min-width: 120px; 
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .cart-item-info h4 { 
+            font-size: 0.85rem; 
+            font-weight: 800; 
+            color: var(--text-primary); 
+            margin: 0; 
+            line-height: 1.2;
+        }
+        .cart-item-info p { 
+            font-size: 0.7rem; 
+            color: var(--text-muted); 
+            margin: 1px 0 0 0; 
+            font-weight: 600; 
+        }
+
+        .cart-item-qty {
+            display: flex; align-items: center; gap: 6px;
+            background: rgba(var(--glass-white), 0.03);
+            padding: 3px 6px; border-radius: 30px;
+            border: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        .cart-qty-btn {
+            width: 26px; height: 26px; border-radius: 50%; border: none;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: var(--transition); font-size: 1rem;
+            font-weight: 800;
+        }
+        .cart-qty-btn.minus { background: #fee2e2; color: #ef4444; }
+        .cart-qty-btn.plus { background: #dcfce7; color: #10b981; }
+        .cart-qty-val { font-weight: 900; font-size: 0.95rem; color: var(--text-primary); min-width: 18px; text-align: center; }
+
+        .cart-item-divider { width: 1px; height: 24px; background: var(--border); margin: 0 2px; flex-shrink: 0; }
+
+        .cart-item-disc {
+            display: flex; gap: 2px; background: rgba(var(--glass-white), 0.03);
+            padding: 3px; border-radius: 12px; border: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        .cart-disc-btn {
+            border: none; background: transparent; color: var(--text-muted);
+            padding: 4px 10px; border-radius: 8px; font-size: 0.7rem;
+            font-weight: 800; cursor: pointer; transition: var(--transition);
+        }
+        .cart-disc-btn.active { background: #FDE68A; color: #92400E; }
+
+        .cart-item-clear {
+            width: 32px; height: 32px; border-radius: 8px;
+            background: rgba(var(--glass-white), 0.02); border: 1px solid var(--border);
+            color: var(--text-muted); cursor: pointer; transition: var(--transition);
+            display: flex; align-items: center; justify-content: center; 
+            font-weight: 700; font-size: 0.8rem; flex-shrink: 0;
+        }
+        .cart-item-clear:hover { background: #fee2e2; color: #ef4444; }
+
+        .cart-item-total {
+            font-size: 1.1rem; font-weight: 900; color: var(--primary);
+            min-width: 75px; text-align: right; letter-spacing: -0.04em;
+            flex-shrink: 0;
+        }
+
+        .payment-opt {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 8px; padding: 14px 10px; border-radius: 14px; border: 1.5px solid var(--border);
+            background: var(--bg-surface); cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: var(--text-muted); position: relative;
+        }
+        .payment-opt:hover {
+            border-color: var(--primary); 
+            background: rgba(212, 175, 55, 0.04);
+            transform: translateY(-2px);
+            color: var(--text-primary);
+        }
+        .payment-opt.active {
+            border-color: var(--primary); 
+            background: rgba(212, 175, 55, 0.1);
+            color: var(--primary); 
+            box-shadow: 0 8px 20px rgba(212, 175, 55, 0.15);
+        }
+        .payment-opt i { 
+            font-size: 1.6rem; 
+            opacity: 0.7; 
+            transition: all 0.3s ease; 
+        }
+        .payment-opt.active i { 
+            opacity: 1; 
+            color: var(--primary); 
+            transform: scale(1.1);
+        }
+        .payment-opt span { 
+            font-size: 0.7rem; 
+            font-weight: 800; 
+            letter-spacing: 0.05em; 
+            text-transform: uppercase;
+        }
+        .payment-opt.active span { color: var(--primary); }
+    </style>
+    <script>
+        (function() {
+            const settings = JSON.parse(localStorage.getItem('bloomeor_settings') || '{}');
+            if (settings.appTheme === 'light') {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+    <link rel="manifest" href="../../manifest.json">
+    <script src="../js/auth.js"></script>
+</head>
+<body>
+
+    <div id="customAlert"><strong id="alertTitle">Info</strong><p id="alertMsg"></p></div>
+
+    <div id="fileSetupBanner" style="position:fixed; top:20px; right:20px; z-index:9999; width:400px; background:var(--bg-surface); backdrop-filter:blur(20px); border:1px solid var(--primary-glow); padding:16px; border-radius:16px; display:flex; align-items:center; justify-content:space-between; gap:16px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); animation: fadeSlideUp 0.5s ease-out;">
+        <div style="display:flex; align-items:center; gap:12px;">
+            <div style="width:40px; height:40px; background:rgba(59, 130, 246, 0.1); border-radius:10px; display:flex; align-items:center; justify-content:center;">
+                <i class="ph-bold ph-database" style="color:#3B82F6; font-size:1.2rem;"></i>
+            </div>
+            <div>
+                <p style="font-weight:700; color:var(--text-primary); margin:0; font-size:0.85rem;">Cloud Sync Active</p>
+                <p style="color:var(--text-muted); margin:0; font-size:0.7rem;">Backup your billing data.</p>
+            </div>
+        </div>
+        <div style="display:flex; gap:8px;">
+            <button onclick="connectBillingFile()" class="btn-gold" style="padding:8px 16px; font-size:0.75rem;">Connect</button>
+            <button onclick="document.getElementById('fileSetupBanner').style.display='none'" style="background:transparent; border:none; color:var(--text-muted); cursor:pointer;"><i class="ph-bold ph-x"></i></button>
+        </div>
+    </div>
+
+    <div id="app-layout">
+        <div class="sidebar" id="sidebar">
+            <div class="logo">
+                <img src="../images/logo/Bloomeor-logo.png" alt="Logo" style="max-height: 38px; width: auto; filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.3));" onerror="this.style.display='none';">
+                <span style="margin-left: 6px; color: var(--text-primary); font-size: 1.5rem; font-weight: 700; letter-spacing: -0.05em;">Bloomeor</span>
+            </div>
+            <div class="nav-header">NAVIGATION</div>
+            <div id="navMenu">
+                <a class="nav-link" href="dashboard.html" data-permission="view_dashboard"><i class="ph-bold ph-chart-line-up"></i> Dashboard</a>
+                <a class="nav-link active" href="pos.html" data-permission="view_pos"><i class="ph-bold ph-cash-register"></i> POS / New Sale</a>
+                <a class="nav-link" href="orders.html" data-permission="view_pos"><i class="ph-bold ph-cooking-pot"></i> Active Orders</a>
+                <a class="nav-link" href="sales.html" data-permission="view_sales"><i class="ph-bold ph-receipt"></i> Sales Records</a>
+                <a class="nav-link" href="customers.html" data-permission="view_customers"><i class="ph-bold ph-users"></i> Customers</a>
+                <a class="nav-link" href="inventory.html" data-permission="view_inventory"><i class="ph-bold ph-package"></i> Warehouse</a>
+                <a class="nav-link" href="purchases.html" data-permission="view_purchases"><i class="ph-bold ph-shopping-cart"></i> Purchases</a>
+                <a class="nav-link" href="suppliers.html" data-permission="view_suppliers"><i class="ph-bold ph-handshake"></i> Suppliers</a>
+                <a class="nav-link" href="reports.html" data-permission="view_reports"><i class="ph-bold ph-chart-bar"></i> Analytics</a>
+                <a class="nav-link" href="settings.html" data-permission="admin_only"><i class="ph-bold ph-gear"></i> App Settings</a>
+
+                <div class="nav-header" style="margin-top: 25px;">CLOUD SYNC</div>
+                <a class="nav-link" href="https://docs.google.com/forms/d/e/1FAIpQLSd-TA73amOnEqSnH62t4qMqYlMoUsPnlSPMntDD_4IQmrUd_g/viewform" target="_blank">
+                    <i class="ph-bold ph-cloud-check" style="color: #10B981;"></i> Live Audit Log
+                </a>
+            </div>
+
+            <div class="nav-header" style="margin-top: auto;">HELP & SUPPORT</div>
+            <div style="padding: 16px; margin: 0 16px 20px 16px; background: rgba(var(--glass-white), 0.03); border: 1px solid var(--border); border-radius: 18px; position: relative; overflow: hidden; animation: fadeIn 0.8s ease;">
+                <div style="position: absolute; top: 10px; right: 10px; display: flex; align-items: center; gap: 5px;">
+                    <div style="width: 6px; height: 6px; background: #10B981; border-radius: 50%; box-shadow: 0 0 10px #10B981;"></div>
+                    <span style="font-size: 0.6rem; color: #10B981; font-weight: 800; letter-spacing: 0.05em;">LIVE</span>
+                </div>
+                <div style="font-size: 0.65rem; color: var(--text-muted); font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px;">Premium Care</div>
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                    <div style="width: 36px; height: 36px; background: var(--primary-glow); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1.1rem;">
+                        <i class="ph-bold ph-headset"></i>
+                    </div>
+                    <div>
+                        <div style="font-weight: 800; font-size: 0.95rem; color: var(--text-primary); letter-spacing: -0.01em;">9902356539</div>
+                        <div style="font-size: 0.65rem; color: var(--text-muted); font-weight: 500;">Concierge Support</div>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                    <a href="tel:9902356539" style="text-decoration: none; background: var(--bg-surface); border: 1px solid var(--border); padding: 8px; border-radius: 10px; color: var(--text-primary); font-size: 0.7rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px; transition: var(--transition);">
+                        <i class="ph-bold ph-phone-call"></i> Call
+                    </a>
+                    <a href="https://wa.me/919902356539" target="_blank" style="text-decoration: none; background: rgba(37, 211, 102, 0.08); border: 1px solid rgba(37, 211, 102, 0.2); padding: 8px; border-radius: 10px; color: #25D366; font-size: 0.7rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px; transition: var(--transition);">
+                        <i class="ph-bold ph-whatsapp-logo"></i> Chat
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="main-content">
+            <div class="topbar">
+                                <div style="display: flex; flex-direction: column; align-items: flex-end; padding-right: 15px; border-right: 1px solid var(--border); margin-right: 5px;">
+                    <span id="topbarBizName" style="font-weight: 800; color: var(--primary); font-size: 0.9rem; letter-spacing: -0.01em;">Bloomeor Retail</span>
+                    <span style="font-size: 0.6rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Authorized Outlet</span>
+                </div>
+<div style="display:flex; align-items:center; gap:16px;">
+                    <h3 style="color:var(--text-sub); font-weight:800; letter-spacing:-0.02em;">Terminal 01</h3>
+                    <div style="height:20px; width:1px; background:var(--border);"></div>
+                    <div style="display:flex; align-items:center; gap:8px; background:rgba(16, 185, 129, 0.1); padding:4px 12px; border-radius:20px;">
+                        <span style="width:6px; height:6px; background:#10B981; border-radius:50%; animation: pulse 2s infinite;"></span>
+                        <span style="font-size:0.65rem; color:#10B981; font-weight:800; text-transform:uppercase; letter-spacing:0.05em;">System Active</span>
+                    </div>
+                </div>
+                <div style="display:flex; gap:20px; align-items:center;">
+                    <div id="liveClock" style="font-weight: 700; color: var(--text-muted); font-size: 0.85rem; font-family:monospace;"></div>
+                    <div class="notification-bell"><i class="ph-bold ph-bell"></i></div>
+                </div>
+            </div>
+            
+            <div class="view-container" style="padding: 24px; height: calc(100vh - 80px); overflow: hidden;">
+                <div class="page-view active" style="display:block; animation:none; height:100%; overflow: hidden;">
+                    <div class="pos-grid" style="display: grid !important; grid-template-columns: 0.7fr 1.3fr; gap: 24px; height: 100%; overflow: hidden;">
+        <!-- Left Side: Product Selection -->
+        <div class="premium-panel" style="display: flex; flex-direction: column; height: 100%; padding: 20px; overflow: hidden;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <div>
+                    <h2 style="font-size: 1.1rem; font-weight: 800; color: var(--text-primary); margin: 0; letter-spacing: -0.02em;">Product Collections</h2>
+                    <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">Select items to add to current ticket.</p>
+                </div>
+                <button onclick="loadProducts()" class="btn-secondary" style="font-size: 0.7rem; padding: 6px 12px; border-radius: 8px;">
+                    <i class="ph-bold ph-arrows-clockwise" style="margin-right: 4px;"></i> Sync Stock
+                </button>
+            </div>
+
+            <div style="position: relative; margin-bottom: 15px;">
+                <i class="ph-bold ph-magnifying-glass" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-muted); opacity: 0.5; font-size: 1.1rem;"></i>
+                <input type="text" id="posSearch" oninput="searchProducts()" placeholder="Find products by name or SKU..." style="width: 100%; height: 40px; padding-left: 48px; border-radius: 12px; font-size: 0.85rem; background: var(--input-bg); border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+            </div>
+
+            <div id="posCategoryNav" style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 10px; border-bottom: 1px solid var(--border); scrollbar-width: none; -ms-overflow-style: none;">
+                <!-- Categories dynamically injected by renderPOSCategories() -->
+            </div>
+
+            <div class="pos-items" id="posProductGrid" style="overflow-y: auto; flex:1; align-content: start; display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; padding-right: 5px;">
+                <!-- Products injected by JS -->
+            </div>
+        </div>
+
+        <div class="premium-panel" style="display: flex; flex-direction: column; height: 100%; padding: 0; overflow: hidden;">
+            <div id="posCheckoutForm" style="display: flex; flex-direction: column; height: 100%;">
+                <div style="padding: 16px 20px; background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <h3 style="font-size: 0.85rem; display: flex; align-items: center; gap: 8px; margin: 0; font-weight: 800; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.05em;">
+                            <i class="ph-bold ph-shopping-cart" style="color: var(--primary); font-size: 1.1rem;"></i> Current Ticket
+                        </h3>
+                        <span id="itemCountBadge" style="background: var(--primary); color: #000; padding: 4px 12px; border-radius: 30px; font-size: 0.65rem; font-weight: 900; box-shadow: 0 0 12px var(--primary-glow);">0 ITEMS</span>
+                    </div>
+                    
+                    <div class="input-group">
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+                            <i class="ph-bold ph-user-circle" style="color:var(--primary); font-size: 1.1rem;"></i>
+                            <p style="font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; font-weight: 800; margin:0; letter-spacing: 0.1em;">Customer Details</p>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+                            <input type="text" id="posCustName" placeholder="Name" value="Walk-in Customer">
+                            <input type="text" id="posCustPhone" placeholder="Mobile">
+                        </div>
+                        <div style="display: flex; gap: 15px; margin-top: 8px; margin-bottom: 4px; flex-wrap: wrap;">
+                            <!-- Business & F&B Toggle -->
+                            <div id="fbToggleBtn" onclick="toggleFBInputs()" style="cursor: pointer; color: var(--primary); font-size: 0.7rem; font-weight: 700; display: flex; align-items: center; gap: 4px; transition: var(--transition); background: rgba(212,175,55,0.05); padding: 4px 8px; border-radius: 6px;">
+                                <i class="ph-bold ph-plus-circle"></i> <span>Business / Table</span>
+                            </div>
+                            
+                            <!-- Email Toggle -->
+                            <div id="emailToggleBtn" onclick="toggleEmailInput()" style="cursor: pointer; color: var(--primary); font-size: 0.7rem; font-weight: 700; display: flex; align-items: center; gap: 4px; transition: var(--transition); background: rgba(212,175,55,0.05); padding: 4px 8px; border-radius: 6px;">
+                                <i class="ph-bold ph-plus-circle"></i> <span>Add Email</span>
+                            </div>
+                        </div>
+
+                        <!-- Containers -->
+                        <div id="fbContainer" style="display: none; margin-top: 8px; animation: slideDown 0.3s ease-out; background: rgba(255,255,255,0.02); padding: 10px; border-radius: 12px; border: 1px dashed var(--border);">
+                            <div style="margin-bottom: 8px;">
+                                <input type="text" id="posCustBusiness" placeholder="Business / Company Name" style="width: 100%;">
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <select id="posOrderType" style="flex:1; height: 42px; border-radius:12px; background:var(--input-bg); color:var(--text-primary); border:1px solid var(--border); padding: 0 10px; font-weight:600;">
+                                    <option value="Dine-in">Dine-in</option>
+                                    <option value="Takeaway">Takeaway</option>
+                                    <option value="Delivery">Delivery</option>
+                                </select>
+                                <input type="text" id="posTableNo" placeholder="Table No." style="flex:1;">
+                            </div>
+                        </div>
+
+                        <div id="emailContainer" style="display: none; margin-top: 8px; animation: slideDown 0.3s ease-out; background: rgba(255,255,255,0.02); padding: 10px; border-radius: 12px; border: 1px dashed var(--border);">
+                            <input type="email" id="posCustEmail" placeholder="Email Address (Optional)" style="width: 100%;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cart List -->
+                <div id="cartList" style="flex: 1; overflow-y: auto; overflow-x: auto; padding: 16px 20px;">
+                    <div style="text-align: center; color: var(--text-muted); padding: 40px 20px;">
+                        <i class="ph-bold ph-shopping-bag-open" style="font-size: 3rem; opacity: 0.15; margin-bottom: 15px;"></i>
+                        <p style="font-size: 0.9rem; opacity: 0.6;">Your cart is currently empty.</p>
+                    </div>
+                </div>
+
+                <!-- Summary & Checkout -->
+                <!-- Summary & Checkout -->
+                <div style="padding: 20px; background: rgba(255,255,255,0.02); border-top: 1px solid var(--border);">
+                    <!-- Offer Toggle Button -->
+                    <div id="promoToggleBtn" onclick="togglePromoInput()" style="margin-bottom: 12px; cursor: pointer; color: var(--primary); font-size: 0.8rem; font-weight: 700; display: none; align-items: center; gap: 8px; transition: var(--transition); opacity: 0.8;">
+                        <i class="ph-bold ph-plus-circle"></i> <span>Add Promo / Offer Code</span>
+                    </div>
+
+                    <!-- Offer Input -->
+                    <div id="promoContainer" style="margin-bottom: 16px; position: relative; display: none; animation: slideDown 0.3s ease-out;">
+                        <i class="ph-bold ph-ticket" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--primary); font-size: 1rem; z-index: 2;"></i>
+                        <input type="text" id="promoCode" placeholder="Enter code..." style="height: 42px; padding-left: 42px; padding-right: 70px; width: 100%;">
+                        <button onclick="applyOffer()" style="position: absolute; right: 6px; top: 50%; transform: translateY(-50%); background: var(--primary); color: #000; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.65rem; font-weight: 900; cursor: pointer; z-index: 3;">APPLY</button>
+                    </div>
+
+                    <div style="display: grid; gap: 8px; margin-bottom: 16px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; color: var(--text-muted); font-size: 0.75rem; font-weight: 600;">
+                            <span style="display: flex; align-items: center; gap: 6px;"><i class="ph-bold ph-article" style="opacity: 0.5;"></i> Subtotal</span>
+                            <span id="cartSubtotal" style="color: var(--text-primary); font-weight: 700;">₹0</span>
+                        </div>
+                        
+                        <div id="discountLineRow" style="display: none; justify-content: space-between; align-items: center; color: #EF4444; font-size: 0.75rem; font-weight: 700;">
+                            <span style="display: flex; align-items: center; gap: 6px;"><i class="ph-bold ph-tag-chevron"></i> Discount</span>
+                            <span id="discountDisplayAmount">-₹0</span>
+                        </div>
+
+                        <div style="display: flex; justify-content: space-between; align-items: center; color: var(--text-muted); font-size: 0.75rem; font-weight: 600; opacity: 0.6;">
+                            <span style="display: flex; align-items: center; gap: 6px;"><i class="ph-bold ph-receipt" style="opacity: 0.5;"></i> Tax (GST 18%)</span>
+                            <span id="cartGST">₹0</span>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; border-top: 1px dashed var(--border); padding-top: 16px;">
+                        <div>
+                            <p style="font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; font-weight: 800; margin: 0 0 4px 0; letter-spacing: 0.1em; opacity: 0.6;">Total Amount Due</p>
+                            <h2 style="font-size: 1.1rem; font-weight: 800; margin: 0; color: var(--text-primary); letter-spacing: -0.02em;">Order Summary</h2>
+                        </div>
+                        <div style="text-align: right;">
+                            <h2 id="cartTotal" style="font-size: 1.8rem; font-weight: 900; color: var(--primary); margin: 0; text-shadow: 0 0 15px var(--primary-glow); letter-spacing: -0.04em; line-height: 1;">₹0</h2>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn-secondary" style="width: 44px; height: 44px; padding: 0; border-radius: 12px; color: #EF4444;" onclick="clearCart()" title="Clear Current Ticket">
+                            <i class="ph-bold ph-trash-simple" style="font-size: 1.2rem;"></i>
+                        </button>
+                        <button class="btn-secondary" style="flex: 1; height: 44px; font-size: 0.85rem; border-radius: 12px; color: var(--primary); border-color: var(--primary);" onclick="sendToKitchen()">
+                            <i class="ph-bold ph-cooking-pot" style="margin-right: 6px; font-size: 1.1rem;"></i> SEND TO KITCHEN
+                        </button>
+                        <button class="btn-gold" style="flex: 1; height: 44px; font-size: 0.85rem; border-radius: 12px; box-shadow: 0 4px 12px var(--primary-glow);" onclick="openPaymentModal()">
+                            <i class="ph-bold ph-lightning" style="margin-right: 6px; font-size: 1.1rem;"></i> FINALIZE
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Payment Modal Overlay -->
+    <div class="modal-overlay" id="paymentModal">
+        <div class="modal-card" style="width: 100%; max-width: 520px; padding: 0; overflow: hidden; margin: auto; max-height: 90vh; display: flex; flex-direction: column;">
+            <div style="padding: 18px 24px; background: var(--bg-surface); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h3 style="margin:0; font-size: 1.2rem; font-weight: 800; color: var(--text-primary); letter-spacing: -0.02em;">Checkout Terminal</h3>
+                    <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Review details and finalize transaction.</p>
+                </div>
+                <button onclick="document.getElementById('paymentModal').style.display='none'" style="width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: var(--transition);">
+                    <i class="ph-bold ph-x"></i>
+                </button>
+            </div>
+            
+            <div style="padding: 20px 24px; background: rgba(212, 175, 55, 0.08); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border);">
+                <div>
+                    <span style="font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; display: block; margin-bottom: 2px;">Total Payable Amount</span>
+                    <span style="font-size: 0.85rem; color: var(--text-primary); font-weight: 600;">Inclusive of all taxes & discounts</span>
+                </div>
+                <span id="modalTotalAmount" style="font-size: 2rem; font-weight: 900; color: var(--primary); text-shadow: 0 0 20px rgba(212, 175, 55, 0.2); letter-spacing: -0.04em;">₹0</span>
+            </div>
+            
+            <div style="overflow-y: auto; flex: 1;">
+                <div style="padding: 24px; display: grid; gap: 20px;">
+                    <div>
+                        <label style="font-size: 0.65rem; color: var(--text-muted); font-weight: 800; text-transform: uppercase; margin-bottom: 8px; display: block; letter-spacing: 0.05em;">Customer Information</label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                            <div style="position: relative;">
+                                <i class="ph-bold ph-user" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--primary); font-size: 0.9rem; opacity: 0.6;"></i>
+                                <input type="text" id="custName" placeholder="Customer Name" value="Walk-in Customer" style="padding-left: 38px; width: 100%; height: 42px;">
+                            </div>
+                            <div style="position: relative;">
+                                <i class="ph-bold ph-phone" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--primary); font-size: 0.9rem; opacity: 0.6;"></i>
+                                <input type="text" id="custPhone" placeholder="Mobile Number" style="padding-left: 38px; width: 100%; height: 42px;">
+                            </div>
+                        </div>
+                        <div style="position: relative;">
+                            <i class="ph-bold ph-buildings" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--primary); font-size: 0.9rem; opacity: 0.6;"></i>
+                            <input type="text" id="custBusiness" placeholder="Business / Company Name (Optional)" style="padding-left: 38px; width: 100%; height: 42px;">
+                        </div>
+                    </div>
+                    
+                    <div style="position: relative;">
+                        <label style="font-size: 0.65rem; color: var(--text-muted); font-weight: 800; text-transform: uppercase; margin-bottom: 8px; display: block; letter-spacing: 0.05em;">Email for Digital Receipt</label>
+                        <i class="ph-bold ph-envelope" style="position: absolute; left: 14px; top: 46px; color: var(--primary); font-size: 0.9rem; opacity: 0.6;"></i>
+                        <input type="email" id="custEmail" placeholder="customer@example.com" style="padding-left: 38px; width: 100%; height: 42px;">
+                    </div>
+
+                    <div>
+                        <label style="font-size: 0.65rem; color: var(--text-muted); font-weight: 800; text-transform: uppercase; margin-bottom: 8px; display: block; letter-spacing: 0.05em;">Promotional Offer</label>
+                        <div style="position: relative;">
+                            <i class="ph-bold ph-ticket" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--primary); font-size: 1rem; opacity: 0.6;"></i>
+                            <input type="text" id="promoCodeModal" placeholder="Enter promo code..." style="height: 42px; padding-left: 42px; padding-right: 70px; width: 100%;">
+                            <button onclick="applyOfferModal()" style="position: absolute; right: 6px; top: 50%; transform: translateY(-50%); background: var(--primary); color: #000; border: none; padding: 6px 14px; border-radius: 8px; font-size: 0.65rem; font-weight: 900; cursor: pointer; transition: var(--transition);">APPLY</button>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 4px;">
+                        <label style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; margin-bottom: 8px; display: block;">Payment Gateway</label>
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+                            <button class="payment-opt active" id="payMethodCash" onclick="setPaymentMethod('Cash')">
+                                <i class="ph-bold ph-money"></i>
+                                <span>CASH</span>
+                            </button>
+                            <button class="payment-opt" id="payMethodUPI" onclick="setPaymentMethod('UPI')">
+                                <i class="ph-bold ph-qr-code"></i>
+                                <span>UPI</span>
+                            </button>
+                            <button class="payment-opt" id="payMethodCard" onclick="setPaymentMethod('Card')">
+                                <i class="ph-bold ph-credit-card"></i>
+                                <span>CARD</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            <div style="padding: 20px 24px; background: var(--bg-surface); border-top: 1px solid var(--border); display: flex; gap: 12px;">
+                <button class="btn-secondary" style="flex:1; height: 46px; font-size: 0.85rem; border-radius: 12px;" onclick="document.getElementById('paymentModal').style.display='none'">Discard</button>
+                <button class="btn-gold" style="flex:2; height: 46px; font-size: 0.9rem; border-radius: 12px; box-shadow: 0 4px 15px var(--primary-glow);" id="finalizeBtn" onclick="finalizeSale()">
+                    <i class="ph-bold ph-check-circle" style="margin-right: 8px; font-size: 1.1rem;"></i> COMPLETE TRANSACTION
+                </button>
+            </div>
+            </div>    </div>
+
+            <!-- Success State Panel -->
+            <div id="posSuccessState" style="display: none; padding: 30px 24px; text-align: center; background: var(--bg-surface);">
+                <div style="width: 64px; height: 64px; background: rgba(16, 185, 129, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);">
+                    <i class="ph-bold ph-check" style="color: #10B981; font-size: 2rem;"></i>
+                </div>
+                <h3 style="font-size: 1.3rem; font-weight: 800; color: var(--text-primary); margin-bottom: 6px;">Transaction Successful</h3>
+                <p id="successInvoiceId" style="font-family: monospace; color: var(--primary); font-size: 0.85rem; font-weight: 700; margin-bottom: 24px; letter-spacing: 0.05em;">#INV-XXXXXX</p>
+                
+                <div style="display: grid; gap: 10px;">
+                    <button class="btn-gold" style="width: 100%; height: 44px; font-size: 0.85rem; border-radius: 12px;" onclick="printA4Receipt()">
+                        <i class="ph-bold ph-printer" style="margin-right: 6px;"></i> Print Full Invoice (A4)
+                    </button>
+                    <button class="btn-secondary" style="width: 100%; height: 44px; font-size: 0.85rem; border-radius: 12px;" onclick="printThermalReceipt()">
+                        <i class="ph-bold ph-receipt" style="margin-right: 6px;"></i> Print Thermal Slip (80mm)
+                    </button>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <button class="btn-wa" style="height: 44px; font-size: 0.85rem; border-radius: 12px; background: #25D366; color: white;" onclick="openWhatsApp()">
+                            <i class="ph-bold ph-whatsapp-logo" style="margin-right: 4px;"></i> WhatsApp
+                        </button>
+                        <button class="btn-secondary" style="height: 44px; font-size: 0.85rem; border-radius: 12px; background: #3B82F6; border: none; color: white;" onclick="saveToOnlineForm()">
+                            <i class="ph-bold ph-cloud-arrow-up" style="margin-right: 4px;"></i> Cloud Sync
+                        </button>
+                    </div>
+                </div>
+
+                <button class="btn-secondary" style="width: 100%; margin-top: 24px; height: 44px; font-size: 0.85rem; border-radius: 12px; border: 1.5px solid var(--primary); color: var(--primary); background: transparent; font-weight: 800;" onclick="resetPOS()">
+                    <i class="ph-bold ph-plus-circle" style="margin-right: 6px;"></i> Create New Ticket
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- Hidden A4 Receipt Template -->
+    <div id="receiptTemplate" style="display: none; padding: 40px; font-family: 'Inter', sans-serif; color: #000; background: #fff; width: 700px; margin: 0 auto;">
+        <div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 20px;">
+            <h1 style="margin: 0; font-size: 28px; text-transform: uppercase;">Bloomeor</h1>
+            <p style="margin: 5px 0; font-size: 16px;">Premium Retail Solutions</p>
+            <p style="margin: 2px 0; font-size: 14px; color: #666;">Official Tax Invoice</p>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; margin-bottom: 30px; font-size: 14px;">
+            <div>
+                <p style="margin-bottom: 8px;"><strong>BILL TO:</strong></p>
+                <p id="receiptCustName" style="margin: 2px 0;"></p>
+                <p id="receiptCustPhone" style="margin: 2px 0;"></p>
+                <p id="receiptCustEmail" style="margin: 2px 0;"></p>
+            </div>
+            <div style="text-align: right;">
+                <p style="margin: 4px 0;"><strong>INVOICE NO:</strong> <span id="receiptInvoiceId"></span></p>
+                <p style="margin: 4px 0;"><strong>DATE:</strong> <span id="receiptDate"></span></p>
+                <p style="margin: 4px 0;"><strong>PAYMENT:</strong> <span id="receiptPaymentMethod"></span></p>
+            </div>
+        </div>
+
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px; font-size: 14px;">
+            <thead>
+                <tr style="border-bottom: 2px solid #000; border-top: 2px solid #000; background: #f9f9f9;">
+                    <th style="text-align: left; padding: 12px 5px;">Description</th>
+                    <th style="text-align: center; padding: 12px 5px;">Qty</th>
+                    <th style="text-align: right; padding: 12px 5px;">Rate</th>
+                    <th style="text-align: right; padding: 12px 5px;">Amount</th>
+                </tr>
+            </thead>
+            <tbody id="receiptItemRows"></tbody>
+        </table>
+
+        <div style="border-top: 1px solid #000; padding-top: 15px; margin-left: auto; width: 250px; font-size: 14px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span>Subtotal:</span>
+                <span id="receiptSubtotal"></span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span>GST (18% Incl.):</span>
+                <span id="receiptGST"></span>
+            </div>
+            <div id="receiptDiscountRow" style="display: none; justify-content: space-between; margin-bottom: 8px; color: #EF4444;">
+                <span>Discount:</span>
+                <span id="receiptDiscount"></span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 15px; font-size: 18px; font-weight: 800; border-top: 3px solid #000; padding-top: 15px;">
+                <span>TOTAL:</span>
+                <span id="receiptTotal"></span>
+            </div>
+        </div>
+
+        <div style="margin-top: 60px; text-align: center; font-size: 12px; color: #888; border-top: 1px dashed #ccc; padding-top: 20px;">
+            <p>Thank you for choosing Bloomeor!</p>
+            <p>Visit us again | www.bloomeor.com</p>
+        </div>
+    </div>
+
+    <!-- Hidden Thermal Receipt Template (80mm) -->
+    <div id="thermalTemplate" style="display: none; width: 80mm; padding: 5mm; font-family: 'Courier New', Courier, monospace; font-size: 12px; color: #000; background: #fff;">
+        <div style="text-align: center; border-bottom: 1px dashed #000; padding-bottom: 5mm; margin-bottom: 5mm;">
+            <h2 style="margin: 0; text-transform: uppercase;">BLOOMEOR</h2>
+            <p style="margin: 2px 0;">Retail Receipt</p>
+        </div>
+        
+        <div style="margin-bottom: 5mm; font-size: 11px;">
+            <p>INV: <span id="thInvoiceId"></span></p>
+            <p>Date: <span id="thDate"></span></p>
+            <p>Cust: <span id="thCustName"></span></p>
+        </div>
+
+        <div style="border-bottom: 1px dashed #000; margin-bottom: 2mm; padding-bottom: 1mm; display: flex; font-weight: bold;">
+            <span style="flex: 2;">Item</span>
+            <span style="flex: 0.5; text-align: center;">Qty</span>
+            <span style="flex: 1; text-align: right;">Amt</span>
+        </div>
+        <div id="thItemRows" style="margin-bottom: 5mm;"></div>
+
+        <div style="border-top: 1px dashed #000; padding-top: 2mm; font-weight: bold;">
+            <div id="thDiscountRow" style="display: none; justify-content: space-between; margin-bottom: 1mm; color: #000;">
+                <span>DISCOUNT:</span>
+                <span id="thDiscount"></span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+                <span>TOTAL:</span>
+                <span id="thTotal"></span>
+            </div>
+        </div>
+        
+        <p style="font-size: 9px; text-align: center; margin-top: 5mm;">(GST 18% Inclusive)</p>
+        <p style="text-align: center; margin-top: 5mm;">*** THANK YOU ***</p>
+    </div>
+
+    <script src="../js/app.js"></script>
+<script>
+    // Update Topbar Business Name
+    document.addEventListener('DOMContentLoaded', () => {
+        const bizName = localStorage.getItem('bloomeor_biz_name') || 'Bloomeor Retail';
+        const bizElements = document.querySelectorAll('#topbarBizName');
+        bizElements.forEach(el => el.innerText = bizName);
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <base target="_top">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bloomeor POS — Active Orders (KOT)</title>
+    <link rel="icon" type="image/x-icon" href="../images/logo/Bloomeor-logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="../css/styles.css">
+    <script src="../js/auth.js"></script>
+    <script>
+        (function() {
+            const settings = JSON.parse(localStorage.getItem('bloomeor_settings') || '{}');
+            if (settings.appTheme === 'light') {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+    <style>
+        .kanban-board {
+            display: flex;
+            gap: 20px;
+            height: calc(100vh - 160px);
+            overflow-x: auto;
+            padding-bottom: 20px;
+        }
+        .kanban-column {
+            flex: 1;
+            min-width: 320px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .kanban-header {
+            padding: 16px;
+            background: rgba(0,0,0,0.1);
+            border-bottom: 1px solid var(--border);
+            font-weight: 800;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .kanban-body {
+            padding: 16px;
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .order-card {
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            transition: var(--transition);
+        }
+        .order-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+        .order-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+        .order-items {
+            font-size: 0.85rem;
+            color: var(--text-primary);
+            margin: 8px 0;
+            padding: 8px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+        }
+        .order-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: auto;
+        }
+    </style>
+</head>
+<body>
+
+<div id="customAlert"><strong id="alertTitle">Info</strong><p id="alertMsg"></p></div>
+
+<div id="app-layout">
+    <div class="sidebar" id="sidebar">
+        <div class="logo">
+            <img src="../images/logo/Bloomeor-logo.png" alt="Logo" style="max-height: 38px; width: auto; filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.3));" onerror="this.style.display='none';">
+            <span style="margin-left: 6px; color: var(--text-primary); font-size: 1.5rem; font-weight: 700; letter-spacing: -0.05em;">Bloomeor</span>
+        </div>
+        <div class="nav-header">NAVIGATION</div>
+        <div id="navMenu">
+            <a class="nav-link" href="dashboard.html" data-permission="view_dashboard"><i class="ph-bold ph-chart-line-up"></i> Dashboard</a>
+            <a class="nav-link" href="pos.html" data-permission="view_pos"><i class="ph-bold ph-cash-register"></i> POS / New Sale</a>
+            <a class="nav-link active" href="orders.html" data-permission="view_pos"><i class="ph-bold ph-cooking-pot"></i> Active Orders</a>
+            <a class="nav-link" href="sales.html" data-permission="view_sales"><i class="ph-bold ph-receipt"></i> Sales Records</a>
+            <a class="nav-link" href="customers.html" data-permission="view_customers"><i class="ph-bold ph-users"></i> Customers</a>
+            <a class="nav-link" href="inventory.html" data-permission="view_inventory"><i class="ph-bold ph-package"></i> Warehouse</a>
+            <a class="nav-link" href="purchases.html" data-permission="view_purchases"><i class="ph-bold ph-shopping-cart"></i> Purchases</a>
+            <a class="nav-link" href="suppliers.html" data-permission="view_suppliers"><i class="ph-bold ph-handshake"></i> Suppliers</a>
+            <a class="nav-link" href="payments.html" data-permission="view_payments"><i class="ph-bold ph-money"></i> Payments</a>
+            <a class="nav-link" href="expenses.html" data-permission="view_expenses"><i class="ph-bold ph-file-text"></i> Expenses</a>
+            <a class="nav-link" href="reminders.html" data-permission="view_payments"><i class="ph-fill ph-bell" style="color: #EF4444;"></i> Due Reminders</a>
+            <a class="nav-link" href="reports.html" data-permission="view_reports"><i class="ph-bold ph-chart-bar"></i> Analytics</a>
+            <a class="nav-link" href="settings.html" data-permission="admin_only"><i class="ph-bold ph-gear"></i> App Settings</a>
+        </div>
+        
+        <div class="nav-header" style="margin-top: auto;">SUPPORT</div>
+        <div style="padding: 10px 24px; color: var(--text-muted); font-size: 0.85rem;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                <i class="ph-bold ph-phone" style="color: var(--primary);"></i>
+                <span>9902356539</span>
+            </div>
+            <div style="font-size: 0.7rem; opacity: 0.6;">Customer Care</div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="topbar">
+            <div>
+                <h2 style="font-size: 1.25rem; font-weight: 800; letter-spacing: -0.02em; color: var(--text-primary); margin: 0;">Order Lifecycle Management</h2>
+                <p style="font-size: 0.75rem; color: var(--text-muted); margin: 2px 0 0 0;">Kitchen workflows and table service</p>
+            </div>
+                        <div style="display:flex; gap: 15px; align-items: center;">
+                <div style="display: flex; flex-direction: column; align-items: flex-end; padding-right: 15px; border-right: 1px solid var(--border);">
+                    <span id="topbarBizName" style="font-weight: 800; color: var(--primary); font-size: 0.9rem; letter-spacing: -0.01em;">Bloomeor Retail</span>
+                    <span style="font-size: 0.6rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Authorized Outlet</span>
+                </div>
+                <div style="display: flex; flex-direction: column; align-items: flex-end;">
+                    <span id="userNameHeader" style="font-weight: 700; color: var(--text-primary); font-size: 0.9rem;">System Admin</span>
+                    <span style="font-size: 0.65rem; color: #10B981; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">● Active Session</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="view-container">
+            <div class="kanban-board">
+                
+                <!-- PREPARING -->
+                <div class="kanban-column">
+                    <div class="kanban-header">
+                        <span style="display:flex; align-items:center; gap:8px;"><i class="ph-bold ph-cooking-pot" style="color:#F59E0B;"></i> Preparing</span>
+                        <span id="countPreparing" style="background:#F59E0B; color:#000; padding:2px 8px; border-radius:12px; font-size:0.7rem;">0</span>
+                    </div>
+                    <div class="kanban-body" id="colPreparing"></div>
+                </div>
+
+                <!-- SERVED -->
+                <div class="kanban-column">
+                    <div class="kanban-header">
+                        <span style="display:flex; align-items:center; gap:8px;"><i class="ph-bold ph-tray" style="color:#3B82F6;"></i> Served / Ready</span>
+                        <span id="countServed" style="background:#3B82F6; color:#000; padding:2px 8px; border-radius:12px; font-size:0.7rem;">0</span>
+                    </div>
+                    <div class="kanban-body" id="colServed"></div>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', loadOrders);
+
+    function loadOrders() {
+        const orders = JSON.parse(localStorage.getItem('bloomeor_active_orders') || '[]');
+        
+        const preparing = orders.filter(o => o.status === 'Preparing');
+        const served = orders.filter(o => o.status === 'Served');
+        
+        document.getElementById('countPreparing').innerText = preparing.length;
+        document.getElementById('countServed').innerText = served.length;
+        
+        document.getElementById('colPreparing').innerHTML = preparing.map(o => createOrderCard(o)).join('') || '<div style="text-align:center; color:var(--text-muted); margin-top:20px;">No active orders.</div>';
+        document.getElementById('colServed').innerHTML = served.map(o => createOrderCard(o)).join('') || '<div style="text-align:center; color:var(--text-muted); margin-top:20px;">No served orders.</div>';
+    }
+
+    function createOrderCard(o) {
+        let itemsHtml = o.items.map(i => `<div style="display:flex;justify-content:space-between;"><span>${i.qty}x ${i.name}</span><span>₹${i.qty * i.sell_rate}</span></div>`).join('');
+        
+        let actionBtn = o.status === 'Preparing' 
+            ? `<button class="btn-secondary" style="flex:1; border-color:#3B82F6; color:#3B82F6;" onclick="updateOrderStatus('${o.id}', 'Served')"><i class="ph-bold ph-check"></i> Mark Served</button>`
+            : `<button class="btn-gold" style="flex:1;" onclick="checkoutOrder('${o.id}')"><i class="ph-bold ph-lightning"></i> Checkout (₹${o.total})</button>`;
+            
+        return `
+            <div class="order-card">
+                <div class="order-meta">
+                    <span style="color:var(--primary); font-size:0.9rem;">${o.id}</span>
+                    <span>${new Date(o.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-weight:800; color:var(--text-primary);">${o.table_no ? `Table ${o.table_no}` : o.order_type}</span>
+                    <span style="font-size:0.75rem; color:var(--text-muted);">${o.customer_name}</span>
+                </div>
+                <div class="order-items">
+                    ${itemsHtml}
+                </div>
+                <div class="order-actions">
+                    <button class="btn-secondary" style="width:40px; padding:0; color:#EF4444;" onclick="cancelOrder('${o.id}')" title="Cancel Order"><i class="ph-bold ph-trash"></i></button>
+                    ${actionBtn}
+                </div>
+            </div>
+        `;
+    }
+
+    function updateOrderStatus(id, newStatus) {
+        let orders = JSON.parse(localStorage.getItem('bloomeor_active_orders') || '[]');
+        const idx = orders.findIndex(o => o.id === id);
+        if(idx > -1) {
+            orders[idx].status = newStatus;
+            localStorage.setItem('bloomeor_active_orders', JSON.stringify(orders));
+            if(window.Auth) window.Auth.logAction('KOT_UPDATE', `Order ${id} marked as ${newStatus}`);
+            loadOrders();
+        }
+    }
+
+    function cancelOrder(id) {
+        if(confirm('Are you sure you want to cancel this Kitchen Order?')) {
+            let orders = JSON.parse(localStorage.getItem('bloomeor_active_orders') || '[]');
+            orders = orders.filter(o => o.id !== id);
+            localStorage.setItem('bloomeor_active_orders', JSON.stringify(orders));
+            if(window.Auth) window.Auth.logAction('KOT_CANCEL', `Order ${id} cancelled`);
+            loadOrders();
+        }
+    }
+
+    function checkoutOrder(id) {
+        // Load the order into POS or just close it here. For simplicity, we close it here.
+        let orders = JSON.parse(localStorage.getItem('bloomeor_active_orders') || '[]');
+        const order = orders.find(o => o.id === id);
+        
+        if(!order) return;
+        
+        // Finalize logic mock
+        if(confirm(`Process final payment of ₹${order.total} for ${order.id}?`)) {
+            // Remove from active orders
+            orders = orders.filter(o => o.id !== id);
+            localStorage.setItem('bloomeor_active_orders', JSON.stringify(orders));
+            
+            // Format for all_sales
+            const finalizedSale = {
+                id: 'INV-' + Math.floor(10000 + Math.random() * 90000),
+                customer_name: order.customer_name,
+                customer_phone: '',
+                customer_email: '',
+                customer_business: order.customer_business,
+                items: JSON.stringify(order.items),
+                subtotal: order.total / 1.18,
+                gst: order.total - (order.total / 1.18),
+                total: order.total,
+                method: 'Cash',
+                date: new Date().toISOString()
+            };
+            
+            let allSales = JSON.parse(localStorage.getItem('all_sales') || '[]');
+            allSales.unshift(finalizedSale);
+            localStorage.setItem('all_sales', JSON.stringify(allSales));
+            
+            if(window.Auth) window.Auth.logAction('KOT_CHECKOUT', `Order ${id} finalized to ${finalizedSale.id}`);
+            
+            const al = document.getElementById('customAlert');
+            if(al) {
+                document.getElementById('alertTitle').innerText = 'Success';
+                document.getElementById('alertMsg').innerText = 'Order Closed and Payment Processed.';
+                al.classList.add('show');
+                setTimeout(() => al.classList.remove('show'), 3500);
+            }
+            loadOrders();
+        }
+    }
+</script>
+<script>
+    // Update Topbar Business Name
+    document.addEventListener('DOMContentLoaded', () => {
+        const bizName = localStorage.getItem('bloomeor_biz_name') || 'Bloomeor Retail';
+        const bizElements = document.querySelectorAll('#topbarBizName');
+        bizElements.forEach(el => el.innerText = bizName);
+    });
+</script>
+</body>
+</html>

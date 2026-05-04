@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <base target="_top">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bloomeor POS — Sales History</title>
+    <link rel="icon" type="image/x-icon" href="../images/logo/Bloomeor-logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="../css/styles.css">
+    <script>
+        (function() {
+            const settings = JSON.parse(localStorage.getItem('bloomeor_settings') || '{}');
+            if (settings.appTheme === 'light') {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+    <style>
+        @media print {
+            .sidebar, .topbar, .filters, .btn-gold, #pagination, .source-icon, .actions-cell {
+                display: none !important;
+            }
+            .main-content {
+                margin-left: 0 !important;
+                padding: 0 !important;
+            }
+            .card {
+                border: none !important;
+                box-shadow: none !important;
+                background: white !important;
+                color: black !important;
+            }
+            table {
+                width: 100% !important;
+                color: black !important;
+                border-collapse: collapse !important;
+            }
+            th, td {
+                border: 1px solid #ddd !important;
+                color: black !important;
+                padding: 8px !important;
+            }
+            th {
+                background: #f2f2f2 !important;
+            }
+            body {
+                background: white !important;
+            }
+            h2, p {
+                color: black !important;
+            }
+        }
+    </style>
+    <link rel="manifest" href="../../manifest.json">
+    <script src="../js/auth.js"></script>
+</head>
+<body>
+
+<div id="customAlert"><strong id="alertTitle">Info</strong><p id="alertMsg"></p></div>
+
+<div id="app-layout">
+    <div class="sidebar" id="sidebar">
+        <div class="logo">
+            <img src="../images/logo/Bloomeor-logo.png" alt="Logo" style="max-height:38px;width:auto;filter:drop-shadow(0 0 8px rgba(212,175,55,0.3));" onerror="this.style.display='none';">
+            <span style="margin-left:6px;color:var(--text-primary);font-size:1.5rem;font-weight:700;letter-spacing:-0.05em;">Bloomeor</span>
+        </div>
+        <div class="nav-header">NAVIGATION</div>
+        <div id="navMenu">
+            <a class="nav-link" href="dashboard.html" data-permission="view_dashboard"><i class="ph-bold ph-chart-line-up"></i> Dashboard</a>
+            <a class="nav-link" href="pos.html" data-permission="view_pos"><i class="ph-bold ph-cash-register"></i> POS / New Sale</a>
+            <a class="nav-link" href="orders.html" data-permission="view_pos"><i class="ph-bold ph-cooking-pot"></i> Active Orders</a>
+            <a class="nav-link active" href="sales.html" data-permission="view_sales"><i class="ph-bold ph-receipt"></i> Sales List</a>
+            <a class="nav-link" href="customers.html" data-permission="view_customers"><i class="ph-bold ph-users"></i> Customers</a>
+            <a class="nav-link" href="inventory.html" data-permission="view_inventory"><i class="ph-bold ph-package"></i> Inventory</a>
+            <a class="nav-link" href="purchases.html" data-permission="view_purchases"><i class="ph-bold ph-shopping-cart"></i> Purchases</a>
+            <a class="nav-link" href="suppliers.html" data-permission="view_suppliers"><i class="ph-bold ph-handshake"></i> Suppliers</a>
+            <a class="nav-link" href="payments.html" data-permission="view_payments"><i class="ph-bold ph-money"></i> Payments</a>
+            <a class="nav-link" href="expenses.html" data-permission="view_expenses"><i class="ph-bold ph-file-text"></i> Expenses</a>
+            <a class="nav-link" href="reminders.html"><i class="ph-fill ph-bell" style="color:#EF4444;"></i> Due Reminders</a>
+            <a class="nav-link" href="reports.html" data-permission="view_reports"><i class="ph-bold ph-chart-bar"></i> Reports</a>
+            <a class="nav-link" href="settings.html" data-permission="admin_only"><i class="ph-bold ph-gear"></i> Settings</a>
+        </div>
+
+        <div class="nav-header" style="margin-top: auto;">HELP & SUPPORT</div>
+        <div style="padding: 16px; margin: 0 16px 20px 16px; background: rgba(var(--glass-white), 0.03); border: 1px solid var(--border); border-radius: 18px; position: relative; overflow: hidden; animation: fadeIn 0.8s ease;">
+            <div style="position: absolute; top: 10px; right: 10px; display: flex; align-items: center; gap: 5px;">
+                <div style="width: 6px; height: 6px; background: #10B981; border-radius: 50%; box-shadow: 0 0 10px #10B981;"></div>
+                <span style="font-size: 0.6rem; color: #10B981; font-weight: 800; letter-spacing: 0.05em;">LIVE</span>
+            </div>
+            <div style="font-size: 0.65rem; color: var(--text-muted); font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px;">Premium Care</div>
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                <div style="width: 36px; height: 36px; background: var(--primary-glow); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1.1rem;">
+                    <i class="ph-bold ph-headset"></i>
+                </div>
+                <div>
+                    <div style="font-weight: 800; font-size: 0.95rem; color: var(--text-primary); letter-spacing: -0.01em;">9902356539</div>
+                    <div style="font-size: 0.65rem; color: var(--text-muted); font-weight: 500;">Concierge Support</div>
+                </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <a href="tel:9902356539" style="text-decoration: none; background: var(--bg-surface); border: 1px solid var(--border); padding: 8px; border-radius: 10px; color: var(--text-primary); font-size: 0.7rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px; transition: var(--transition);">
+                    <i class="ph-bold ph-phone-call"></i> Call
+                </a>
+                <a href="https://wa.me/919902356539" target="_blank" style="text-decoration: none; background: rgba(37, 211, 102, 0.08); border: 1px solid rgba(37, 211, 102, 0.2); padding: 8px; border-radius: 10px; color: #25D366; font-size: 0.7rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px; transition: var(--transition);">
+                    <i class="ph-bold ph-whatsapp-logo"></i> Chat
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="topbar">
+            <h3 style="color:var(--text-sub)">Sales History</h3>
+                            <div style="display: flex; flex-direction: column; align-items: flex-end; padding-right: 15px; border-right: 1px solid var(--border); margin-right: 5px;">
+                    <span id="topbarBizName" style="font-weight: 800; color: var(--primary); font-size: 0.9rem; letter-spacing: -0.01em;">Bloomeor Retail</span>
+                    <span style="font-size: 0.6rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Authorized Outlet</span>
+                </div>
+<div style="display:flex;gap:12px;align-items:center;">
+                <button class="btn-gold" style="height:38px;padding:0 14px;font-size:0.85rem;background:transparent;border:1px solid var(--border);color:var(--text-primary);" onclick="window.print()">
+                    <i class="ph-bold ph-printer"></i> Print List
+                </button>
+                <button class="btn-gold" style="height:38px;padding:0 14px;font-size:0.85rem;background:transparent;border:1px solid var(--border);color:var(--text-primary);" onclick="exportToExcel()">
+                    <i class="ph-bold ph-microsoft-excel-logo" style="color:#10B981;"></i> Export Excel
+                </button>
+                <a href="pos.html" class="btn-gold" style="height:38px;padding:0 14px;font-size:0.85rem;text-decoration:none;display:flex;align-items:center;gap:6px;" data-permission="view_pos">
+                <a class="nav-link" href="orders.html" data-permission="view_pos"><i class="ph-bold ph-cooking-pot"></i> Active Orders</a>
+                    <i class="ph-bold ph-plus"></i> New Sale
+                </a>
+            </div>
+        </div>
+
+        <div class="view-container">
+        <div class="page-view active" style="display:block;animation:none;">
+
+            <!-- Header -->
+            <div style="margin-bottom:24px;">
+                <h2 style="font-size:1.75rem;font-weight:700;">Sales History</h2>
+                <p style="color:var(--text-muted);margin-top:4px;">All transactions — merged from cloud and offline records.</p>
+            </div>
+
+            <!-- Stats Row -->
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;">
+                <div class="card" style="padding:16px;background:rgba(212,175,55,0.05);border:1px solid rgba(212,175,55,0.2);">
+                    <p style="font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;">Total Revenue</p>
+                    <h3 id="statRevenue" style="font-size:1.5rem;margin-top:5px;color:var(--primary);">₹0</h3>
+                </div>
+                <div class="card" style="padding:16px;background:rgba(16,185,129,0.05);border:1px solid rgba(16,185,129,0.2);">
+                    <p style="font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;">Today's Sales</p>
+                    <h3 id="statToday" style="font-size:1.5rem;margin-top:5px;color:#10B981;">₹0</h3>
+                </div>
+                <div class="card" style="padding:16px;background:rgba(59,130,246,0.05);border:1px solid rgba(59,130,246,0.2);">
+                    <p style="font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;">Total Orders</p>
+                    <h3 id="statCount" style="font-size:1.5rem;margin-top:5px;color:#3B82F6;">0</h3>
+                </div>
+                <div class="card" style="padding:16px;background:rgba(139,92,246,0.05);border:1px solid rgba(139,92,246,0.2);">
+                    <p style="font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;">Avg. Order Value</p>
+                    <h3 id="statAvg" style="font-size:1.5rem;margin-top:5px;color:#8B5CF6;">₹0</h3>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="card filters" style="margin-bottom:20px;padding:15px;">
+                <div style="display:flex;gap:12px;flex-wrap:wrap;">
+                    <div style="position:relative;flex:1;min-width:200px;">
+                        <i class="ph-bold ph-magnifying-glass" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--primary);opacity:0.7;"></i>
+                        <input type="text" id="salesSearch" oninput="filterSales()" placeholder="Search by customer, invoice or method..." style="padding-left:40px;margin-top:0;background:var(--input-bg); border:1px solid var(--border); color:var(--text-primary);">
+                    </div>
+                    <select id="methodFilter" onchange="filterSales()" style="width:160px;margin-top:0;background:var(--input-bg); border:1px solid var(--border); color:var(--text-primary);">
+                        <option value="all">All Methods</option>
+                        <option value="Cash">Cash</option>
+                        <option value="UPI">UPI</option>
+                        <option value="Card">Card</option>
+                    </select>
+                    <input type="date" id="dateFrom" onchange="filterSales()" style="width:150px;margin-top:0;background:var(--input-bg); border:1px solid var(--border); color:var(--text-primary);" title="From date">
+                    <input type="date" id="dateTo"   onchange="filterSales()" style="width:150px;margin-top:0;background:var(--input-bg); border:1px solid var(--border); color:var(--text-primary);" title="To date">
+                    <button class="btn-secondary" style="width:48px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:8px;" onclick="clearFilters()">
+                        <i class="ph-bold ph-x"></i>
+                    </button>
+                    <button class="btn-secondary" style="width:48px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:8px;" onclick="loadSales()">
+                        <i class="ph-bold ph-arrows-clockwise"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Source indicator -->
+            <div id="sourceTag" style="display:flex;align-items:center;gap:8px;margin-bottom:14px;font-size:0.78rem;color:var(--text-muted);"></div>
+
+            <!-- Table -->
+            <div class="card" style="padding:0;overflow:hidden;">
+                <table style="width:100%;border-collapse:collapse;text-align:left;">
+                    <thead>
+                        <tr style="background:var(--bg-surface);color:var(--text-muted);font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">
+                            <th style="padding:14px 20px;font-weight:600;">Invoice</th>
+                            <th style="padding:14px 20px;font-weight:600;">Customer</th>
+                            <th style="padding:14px 20px;font-weight:600;">Business</th>
+                            <th style="padding:14px 20px;font-weight:600;">Phone</th>
+                            <th style="padding:14px 20px;font-weight:600;">Items</th>
+                            <th style="padding:14px 20px;font-weight:600;">Method</th>
+                            <th style="padding:14px 20px;font-weight:600;text-align:right;">Total</th>
+                            <th style="padding:14px 20px;font-weight:600;">Date & Time</th>
+                            <th style="padding:14px 20px;font-weight:600;" class="source-icon">Source</th>
+                        </tr>
+                    </thead>
+                    <tbody id="salesTableBody">
+                        <tr><td colspan="9" style="padding:50px;text-align:center;color:var(--text-muted);">
+                            <i class="ph-bold ph-spinner ph-spin" style="font-size:2rem;display:block;margin:0 auto 10px;"></i>
+                            Loading sales...
+                        </td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div id="pagination" style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;color:var(--text-muted);font-size:0.82rem;"></div>
+
+        </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sale Detail Modal -->
+<div class="modal-overlay" id="saleDetailModal" style="display:none;">
+    <div class="modal-card" style="max-width:520px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;border-bottom:1px solid var(--border);padding-bottom:15px;">
+            <h3 id="detailTitle" style="margin:0;">Invoice Details</h3>
+            <i class="ph-bold ph-x" style="cursor:pointer;font-size:1.2rem;" onclick="document.getElementById('saleDetailModal').style.display='none'"></i>
+        </div>
+        <div id="detailBody"></div>
+        <div style="display:flex;gap:12px;margin-top:24px;border-top:1px solid var(--border);padding-top:20px;">
+            <button class="btn-secondary" style="flex:1;" onclick="document.getElementById('saleDetailModal').style.display='none'">Dismiss</button>
+            <button class="btn-secondary" style="flex:1; border-color: #EF4444; color: #EF4444;" onclick="processRefund()" data-permission="process_refund">
+                <i class="ph-bold ph-arrow-counter-clockwise"></i> Refund
+            </button>
+            <button class="btn-gold" style="flex:2;" onclick="printSpecificSale()">
+                <i class="ph-bold ph-printer"></i> Generate Receipt
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function processRefund() {
+        if (!window.Auth || !window.Auth.hasPermission('process_refund')) {
+            window.Auth.showAlert('Access Denied', 'You do not have permission to process refunds.');
+            return;
+        }
+        if(confirm('Are you sure you want to process a refund for this transaction?')) {
+            window.Auth.logAction('REFUND_INITIATED', 'Initiated a refund for Invoice ' + document.getElementById('detailTitle').innerText.replace('Invoice Details - ', ''));
+            window.Auth.showAlert('Refund Processed', 'The refund has been recorded and the inventory has been updated.');
+            document.getElementById('saleDetailModal').style.display='none';
+        }
+    }
+    let allSales    = [];
+    let filtered    = [];
+    let currentPage = 1;
+    const PAGE_SIZE = 25;
+
+    const showAlert = (title, msg) => {
+        document.getElementById('alertTitle').innerText = title;
+        document.getElementById('alertMsg').innerText   = msg;
+        const al = document.getElementById('customAlert');
+        al.classList.add('show');
+        setTimeout(() => al.classList.remove('show'), 3500);
+    };
+
+    // ── INIT ────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', loadSales);
+
+    // ── LOAD (MERGE ONLINE + OFFLINE) ────────────────────────
+    function loadSales() {
+        document.getElementById('salesTableBody').innerHTML = `
+            <tr><td colspan="8" style="padding:50px;text-align:center;color:var(--text-muted);">
+                <i class="ph-bold ph-spinner ph-spin" style="font-size:2rem;display:block;margin:0 auto 10px;"></i>
+                Fetching live data...
+            </td></tr>`;
+
+        // Offline sales from localStorage
+        const offlineSales = JSON.parse(localStorage.getItem('all_sales') || '[]').map(s => ({
+            id:             s.id,
+            customerName:   s.payment?.customerName   || 'Walk-in',
+            customerBusiness: s.payment?.customerBusiness || '',
+            customerPhone:  s.payment?.customerPhone  || '',
+            paymentMethod:  s.payment?.method         || '—',
+            total:          s.cart?.total             || 0,
+            date:           s.date,
+            items:          (s.cart?.items || []).map(i => `${i.name}(${i.qty})`).join(', '),
+            source:         'offline'
+        }));
+
+        if (typeof google !== 'undefined') {
+            google.script.run.withSuccessHandler(onlineSales => {
+                // Map online data
+                const online = (onlineSales || []).map(s => ({ ...s, source: 'online' }));
+
+                // Merge — prefer online version if ID matches
+                const onlineIds = new Set(online.map(s => String(s.id)));
+                const offlineOnly = offlineSales.filter(s => !onlineIds.has(String(s.id)));
+                allSales = [...online, ...offlineOnly].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                updateSourceTag(online.length, offlineOnly.length);
+                applyFilters();
+            }).withFailureHandler(() => {
+                allSales = offlineSales.sort((a, b) => new Date(b.date) - new Date(a.date));
+                updateSourceTag(0, offlineSales.length);
+                applyFilters();
+            }).getServerData('sales');
+        } else {
+            allSales = offlineSales.sort((a, b) => new Date(b.date) - new Date(a.date));
+            updateSourceTag(0, offlineSales.length);
+            applyFilters();
+        }
+    }
+
+    function updateSourceTag(onlineCount, offlineCount) {
+        const tag = document.getElementById('sourceTag');
+        tag.innerHTML = `
+            <i class="ph-bold ph-cloud" style="color:#3B82F6;"></i>
+            <span>${onlineCount} cloud records</span>
+            <span style="opacity:0.4;">|</span>
+            <i class="ph-bold ph-device-mobile" style="color:#10B981;"></i>
+            <span>${offlineCount} local records</span>
+            <span style="opacity:0.4;">|</span>
+            <strong style="color:var(--primary);">${onlineCount + offlineCount} total</strong>`;
+    }
+
+    // ── FILTER ───────────────────────────────────────────────
+    function filterSales() { currentPage = 1; applyFilters(); }
+
+    function applyFilters() {
+        const q      = (document.getElementById('salesSearch').value || '').toLowerCase();
+        const method = document.getElementById('methodFilter').value;
+        const from   = document.getElementById('dateFrom').value;
+        const to     = document.getElementById('dateTo').value;
+
+        filtered = allSales.filter(s => {
+            const matchQ = !q ||
+                (s.customerName  || '').toLowerCase().includes(q) ||
+                (s.customerBusiness || '').toLowerCase().includes(q) ||
+                (s.id            || '').toLowerCase().includes(q) ||
+                (s.paymentMethod || '').toLowerCase().includes(q);
+            const matchM = method === 'all' || (s.paymentMethod || '').includes(method);
+            const sDate  = new Date(s.date);
+            const matchF = !from || sDate >= new Date(from);
+            const matchT = !to   || sDate <= new Date(to + 'T23:59:59');
+            return matchQ && matchM && matchF && matchT;
+        });
+
+        updateStats(filtered);
+        renderPage();
+    }
+
+    function clearFilters() {
+        document.getElementById('salesSearch').value = '';
+        document.getElementById('methodFilter').value = 'all';
+        document.getElementById('dateFrom').value = '';
+        document.getElementById('dateTo').value   = '';
+        filterSales();
+    }
+
+    // ── STATS ─────────────────────────────────────────────────
+    function updateStats(data) {
+        const today = new Date().toDateString();
+        let revenue = 0, todayRev = 0;
+        data.forEach(s => {
+            const t = parseFloat(s.total) || 0;
+            revenue += t;
+            if (new Date(s.date).toDateString() === today) todayRev += t;
+        });
+        const avg = data.length ? Math.round(revenue / data.length) : 0;
+
+        document.getElementById('statRevenue').innerText = '₹' + revenue.toLocaleString('en-IN');
+        document.getElementById('statToday').innerText   = '₹' + todayRev.toLocaleString('en-IN');
+        document.getElementById('statCount').innerText   = data.length;
+        document.getElementById('statAvg').innerText     = '₹' + avg.toLocaleString('en-IN');
+    }
+
+    // ── RENDER ───────────────────────────────────────────────
+    function renderPage() {
+        const tbody = document.getElementById('salesTableBody');
+        const total = filtered.length;
+        const start = (currentPage - 1) * PAGE_SIZE;
+        const page  = filtered.slice(start, start + PAGE_SIZE);
+
+        if (total === 0) {
+            tbody.innerHTML = `<tr><td colspan="9" style="padding:50px;text-align:center;color:var(--text-muted);">
+                <i class="ph-bold ph-receipt" style="font-size:3rem;opacity:0.15;display:block;margin:0 auto 12px;"></i>
+                No sales found. <a href="pos.html" style="color:var(--primary);" data-permission="view_pos">Make your first sale →</a>
+                <a class="nav-link" href="orders.html" data-permission="view_pos"><i class="ph-bold ph-cooking-pot"></i> Active Orders</a>
+            </td></tr>`;
+            document.getElementById('pagination').innerHTML = '';
+            return;
+        }
+
+        tbody.innerHTML = page.map(s => {
+            const methodColor = { 'Cash':'#10B981','UPI':'#3B82F6','Card':'#8B5CF6' }[s.paymentMethod] || '#9CA3AF';
+            const srcIcon = s.source === 'online'
+                ? '<i class="ph-bold ph-cloud" style="color:#3B82F6;" title="Cloud"></i>'
+                : '<i class="ph-bold ph-device-mobile" style="color:#10B981;" title="Local"></i>';
+            const dateStr = s.date ? new Date(s.date).toLocaleString('en-IN', {
+                day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'
+            }) : '—';
+            const itemsShort = (s.items || '').length > 40 ? s.items.substring(0, 40) + '…' : (s.items || '—');
+
+            return `
+            <tr style="border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.2s;"
+                onclick="showDetail(${JSON.stringify(s).replace(/"/g,'&quot;')})">
+                <td style="padding:13px 20px;font-family:monospace;font-size:0.8rem;color:var(--primary);font-weight:600;">${s.id || '—'}</td>
+                <td style="padding:13px 20px;font-weight:600;">${s.customerName || 'Walk-in'}</td>
+                <td style="padding:13px 20px;color:var(--text-muted);font-size:0.85rem;">${s.customerBusiness || '—'}</td>
+                <td style="padding:13px 20px;color:var(--text-muted);font-size:0.85rem;">${s.customerPhone || '—'}</td>
+                <td style="padding:13px 20px;color:var(--text-muted);font-size:0.82rem;max-width:200px;">${itemsShort}</td>
+                <td style="padding:13px 20px;">
+                    <span style="color:${methodColor};font-size:0.8rem;font-weight:600;background:${methodColor}18;padding:3px 9px;border-radius:20px;">${s.paymentMethod || '—'}</span>
+                </td>
+                <td style="padding:13px 20px;text-align:right;font-weight:700;color:var(--primary);">₹${parseFloat(s.total || 0).toLocaleString('en-IN')}</td>
+                <td style="padding:13px 20px;color:var(--text-muted);font-size:0.82rem;">${dateStr}</td>
+                <td style="padding:13px 20px;text-align:center;">${srcIcon}</td>
+            </tr>`;
+        }).join('');
+
+        // Pagination
+        const pages = Math.ceil(total / PAGE_SIZE);
+        document.getElementById('pagination').innerHTML = `
+            <span>Showing ${start + 1}–${Math.min(start + PAGE_SIZE, total)} of ${total} sales</span>
+            <div style="display:flex;gap:8px;">
+                <button onclick="goPage(${currentPage - 1})" ${currentPage <= 1 ? 'disabled' : ''}
+                    style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:white;padding:5px 12px;border-radius:6px;cursor:pointer;">← Prev</button>
+                <span style="padding:5px 12px;background:rgba(212,175,55,0.1);border-radius:6px;color:var(--primary);font-weight:600;">${currentPage} / ${pages}</span>
+                <button onclick="goPage(${currentPage + 1})" ${currentPage >= pages ? 'disabled' : ''}
+                    style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:white;padding:5px 12px;border-radius:6px;cursor:pointer;">Next →</button>
+            </div>`;
+    }
+
+    function goPage(p) {
+        const pages = Math.ceil(filtered.length / PAGE_SIZE);
+        if (p < 1 || p > pages) return;
+        currentPage = p;
+        renderPage();
+        window.scrollTo(0, 0);
+    }
+
+    // ── DETAIL MODAL ─────────────────────────────────────────
+    function showDetail(sale) {
+        document.getElementById('detailTitle').innerText = `Invoice: ${sale.id || '—'}`;
+        const dateStr = sale.date ? new Date(sale.date).toLocaleString('en-IN') : '—';
+        document.getElementById('detailBody').innerHTML = `
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+                <div><p style="font-size:0.75rem;color:var(--text-muted);">Customer</p><p style="font-weight:600;">${sale.customerName || 'Walk-in'}</p></div>
+                <div><p style="font-size:0.75rem;color:var(--text-muted);">Business</p><p style="font-weight:600;">${sale.customerBusiness || '—'}</p></div>
+                <div><p style="font-size:0.75rem;color:var(--text-muted);">Phone</p><p style="font-weight:600;">${sale.customerPhone || '—'}</p></div>
+                <div><p style="font-size:0.75rem;color:var(--text-muted);">Payment Method</p><p style="font-weight:600;">${sale.paymentMethod || '—'}</p></div>
+                <div><p style="font-size:0.75rem;color:var(--text-muted);">Date & Time</p><p style="font-weight:600;">${dateStr}</p></div>
+            </div>
+            <div style="background:var(--input-bg);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;">
+                <p style="font-size:0.7rem;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;font-weight:800;letter-spacing:0.05em;">Items Purchased</p>
+                <p style="font-size:0.95rem;color:var(--text-primary);line-height:1.5;">${sale.items || '—'}</p>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border);padding-top:14px;">
+                <span style="font-size:0.9rem;color:var(--text-muted);">Total Amount</span>
+                <span style="font-size:1.6rem;font-weight:700;color:var(--primary);">₹${parseFloat(sale.total || 0).toLocaleString('en-IN')}</span>
+            </div>
+            <div style="margin-top:14px;text-align:right;">
+                <span style="font-size:0.75rem;color:var(--text-muted);">Source: ${sale.source === 'online' ? '☁️ Cloud (Google Sheets)' : '📱 Local (Offline)'}</span>
+            </div>`;
+        document.getElementById('saleDetailModal').style.display = 'flex';
+    }
+
+    // ── PRINT SPECIFIC SALE ──────────────────────────────────
+    function printSpecificSale() {
+        const body = document.getElementById('detailBody');
+        const win = window.open('', '_blank', 'width=800,height=600');
+        win.document.write(`
+            <html>
+            <head>
+                <title>Receipt - Bloomeor POS</title>
+                <style>
+                    body { font-family: sans-serif; padding: 40px; color: #333; }
+                    .receipt-header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #eee; padding-bottom: 20px; }
+                    .receipt-id { font-family: monospace; color: #777; margin-top: 5px; }
+                    .field { margin-bottom: 15px; display: flex; justify-content: space-between; }
+                    .label { color: #888; font-size: 0.85rem; }
+                    .value { font-weight: 600; }
+                    .items-box { background: #f9f9f9; padding: 15px; border-radius: 8px; margin: 20px 0; }
+                    .total-row { border-top: 2px solid #eee; padding-top: 20px; display: flex; justify-content: space-between; align-items: center; }
+                    .total-label { font-size: 1.1rem; }
+                    .total-value { font-size: 1.8rem; font-weight: 700; color: var(--primary); }
+                    @media print { .no-print { display: none; } }
+                </style>
+                <script src="../js/auth.js"></script>
+</head>
+            <body>
+                <div class="receipt-header">
+                    <h1 style="margin:0;">BLOOMEOR</h1>
+                    <p style="margin:5px 0 0; color:#888;">Point of Sale Transaction Receipt</p>
+                </div>
+                ${body.innerHTML}
+                <script>
+                    window.onload = function() { window.print(); window.close(); };
+                <\/script>
+            <script>
+    // Update Topbar Business Name
+    document.addEventListener('DOMContentLoaded', () => {
+        const bizName = localStorage.getItem('bloomeor_biz_name') || 'Bloomeor Retail';
+        const bizElements = document.querySelectorAll('#topbarBizName');
+        bizElements.forEach(el => el.innerText = bizName);
+    });
+</script>
+</body>
+            </html>
+        `);
+        win.document.close();
+    }
+
+    // ── EXPORT EXCEL ─────────────────────────────────────────
+    function exportToExcel() {
+        if (filtered.length === 0) return showAlert('Info', 'No data to export.');
+        const rows = filtered.map(s => ({
+            'Invoice ID':       s.id || '',
+            'Customer Name':    s.customerName || '',
+            'Business Name':    s.customerBusiness || '',
+            'Phone':            s.customerPhone || '',
+            'Items':            s.items || '',
+            'Payment Method':   s.paymentMethod || '',
+            'Total (Rs.)':      parseFloat(s.total || 0),
+            'Date & Time':      s.date ? new Date(s.date).toLocaleString('en-IN') : '',
+            'Source':           s.source === 'online' ? 'Cloud' : 'Local'
+        }));
+        const ws = XLSX.utils.json_to_sheet(rows);
+        ws['!cols'] = [{wch:14},{wch:22},{wch:22},{wch:14},{wch:40},{wch:16},{wch:12},{wch:22},{wch:8}];
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Sales History');
+        XLSX.writeFile(wb, `Bloomeor_Sales_${new Date().toISOString().split('T')[0]}.xlsx`);
+        showAlert('Exported', `${filtered.length} sales exported to Excel.`);
+    }
+
+</script>
+
+<script>
+    // Update Topbar Business Name
+    document.addEventListener('DOMContentLoaded', () => {
+        const bizName = localStorage.getItem('bloomeor_biz_name') || 'Bloomeor Retail';
+        const bizElements = document.querySelectorAll('#topbarBizName');
+        bizElements.forEach(el => el.innerText = bizName);
+    });
+</script>
+</body>
+</html>

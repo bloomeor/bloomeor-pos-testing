@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bloomeor POS — Purchases</title>
+    <link rel="icon" type="image/x-icon" href="../images/logo/Bloomeor-logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="../css/styles.css">
+    <style>
+        .stat-card {
+            background: var(--bg-surface-raised); border: 1px solid var(--border);
+            padding: 24px; border-radius: var(--radius-lg);
+            transition: var(--transition); position: relative; overflow: hidden;
+        }
+        .stat-card:hover { transform: translateY(-5px); border-color: var(--primary); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .stat-icon {
+            width: 48px; height: 48px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; margin-bottom: 16px;
+        }
+        
+        .purchase-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        .purchase-table th { 
+            padding: 16px 20px; color: var(--text-muted); font-size: 0.75rem; 
+            font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;
+            border-bottom: 1px solid var(--border); background: var(--bg-surface);
+        }
+        .purchase-table td { padding: 18px 20px; border-bottom: 1px solid var(--border); transition: var(--transition); color: var(--text-primary); }
+        .purchase-table tr:hover td { background: var(--input-bg); }
+        .purchase-table tr:last-child td { border-bottom: none; }
+
+        .status-badge {
+            padding: 6px 12px; border-radius: 30px; font-size: 0.75rem; font-weight: 700;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        .status-paid { background: rgba(16, 185, 129, 0.1); color: #10B981; }
+        .status-pending { background: rgba(239, 68, 68, 0.1); color: #EF4444; }
+        .status-partial { background: rgba(245, 158, 11, 0.1); color: #F59E0B; }
+    </style>
+    <script>
+        (function() {
+            const settings = JSON.parse(localStorage.getItem('bloomeor_settings') || '{}');
+            if (settings.appTheme === 'light') {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+    <script src="../js/auth.js"></script>
+</head>
+<body>
+
+    <div id="customAlert"><strong id="alertTitle">Info</strong><p id="alertMsg"></p></div>
+
+    <div id="app-layout">
+        <div class="sidebar" id="sidebar">
+            <div class="logo">
+                <img src="../images/logo/Bloomeor-logo.png" alt="Logo" style="max-height: 42px; width: auto; filter: drop-shadow(0 0 12px rgba(212, 175, 55, 0.4));">
+                <span style="margin-left: 10px; color: var(--text-primary); font-size: 1.6rem; font-weight: 800; letter-spacing: -0.04em;">Bloomeor</span>
+            </div>
+            <div class="nav-header">MAIN MENU</div>
+            <div id="navMenu">
+                <a class="nav-link" href="dashboard.html" data-permission="view_dashboard"><i class="ph-bold ph-chart-line-up"></i> Dashboard</a>
+                <a class="nav-link" href="pos.html" data-permission="view_pos"><i class="ph-bold ph-cash-register"></i> POS Terminal</a>
+                <a class="nav-link" href="orders.html" data-permission="view_pos"><i class="ph-bold ph-cooking-pot"></i> Active Orders</a>
+                <a class="nav-link" href="sales.html" data-permission="view_sales"><i class="ph-bold ph-receipt"></i> Sales Records</a>
+                <a class="nav-link" href="customers.html" data-permission="view_customers"><i class="ph-bold ph-users"></i> Customers</a>
+                <a class="nav-link" href="inventory.html" data-permission="view_inventory"><i class="ph-bold ph-package"></i> Warehouse</a>
+                <a class="nav-link active" href="purchases.html" data-permission="view_purchases"><i class="ph-bold ph-shopping-cart"></i> Purchases</a>
+                <a class="nav-link" href="suppliers.html" data-permission="view_suppliers"><i class="ph-bold ph-handshake"></i> Suppliers</a>
+                <a class="nav-link" href="reports.html" data-permission="view_reports"><i class="ph-bold ph-chart-bar"></i> Analytics</a>
+                <a class="nav-link" href="settings.html" data-permission="admin_only"><i class="ph-bold ph-gear"></i> App Settings</a>
+            </div>
+
+            <div style="margin-top: auto; padding: 24px; border-top: 1px solid var(--border);">
+                <div style="background: rgba(255,255,255,0.03); padding: 16px; border-radius: 12px; border: 1px solid var(--border);">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                        <i class="ph-fill ph-headset" style="color: var(--primary);"></i>
+                        <span style="font-weight: 700; font-size: 0.85rem;">Concierge Support</span>
+                    </div>
+                    <p style="font-size: 0.7rem; color: var(--text-muted);">+91 9902356539</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="topbar">
+                                <div style="display: flex; flex-direction: column; align-items: flex-end; padding-right: 15px; border-right: 1px solid var(--border); margin-right: 5px;">
+                    <span id="topbarBizName" style="font-weight: 800; color: var(--primary); font-size: 0.9rem; letter-spacing: -0.01em;">Bloomeor Retail</span>
+                    <span style="font-size: 0.6rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Authorized Outlet</span>
+                </div>
+<div style="display:flex; align-items:center; gap:20px;">
+                    <h3 style="color: var(--text-primary); font-size: 1.25rem;">Purchase Management</h3>
+                    <div style="height:20px; width:1px; background:var(--border);"></div>
+                    <div id="liveClock" style="font-weight: 600; color: var(--text-muted); font-size: 0.9rem;"></div>
+                </div>
+                <div style="display:flex; gap: 20px; align-items: center;">
+                    <div style="text-align:right;">
+                        <p style="font-weight: 700; font-size: 0.9rem; margin:0;">Inventory Admin</p>
+                        <p style="font-size: 0.7rem; color: #10B981; margin:0;">● Secure Session</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="view-container">
+                <div class="page-view active" style="display:block; animation:none;">
+                    
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:32px;">
+                        <div>
+                            <h2 style="font-size:1.8rem; font-weight:800; letter-spacing:-0.03em;">Purchase Orders</h2>
+                            <p style="color:var(--text-muted); font-size:0.95rem;">Manage incoming stock and supplier relationships.</p>
+                        </div>
+                        <button class="btn-gold" onclick="openAddModal()" style="padding: 14px 28px; font-size: 1rem;">
+                            <i class="ph-bold ph-plus-circle"></i> Create New Order
+                        </button>
+                    </div>
+
+                    <!-- Enhanced Stats Row -->
+                    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:24px; margin-bottom:32px;">
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: rgba(59, 130, 246, 0.1); color: #3B82F6;"><i class="ph-bold ph-shopping-bag"></i></div>
+                            <p style="font-size:0.75rem; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:0.05em;">Total Expenditure</p>
+                            <h3 id="statTotal" style="font-size:1.8rem; font-weight:800; margin-top:8px;">₹0</h3>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: #10B981;"><i class="ph-bold ph-calendar-check"></i></div>
+                            <p style="font-size:0.75rem; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:0.05em;">This Month</p>
+                            <h3 id="statMonth" style="font-size:1.8rem; font-weight:800; margin-top:8px; color:#10B981;">₹0</h3>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: rgba(212, 175, 55, 0.1); color: var(--primary);"><i class="ph-bold ph-package"></i></div>
+                            <p style="font-size:0.75rem; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:0.05em;">Order Volume</p>
+                            <h3 id="statCount" style="font-size:1.8rem; font-weight:800; margin-top:8px; color:var(--primary);">0</h3>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: rgba(239, 68, 68, 0.1); color: #EF4444;"><i class="ph-bold ph-clock-countdown"></i></div>
+                            <p style="font-size:0.75rem; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:0.05em;">Outstanding</p>
+                            <h3 id="statPending" style="font-size:1.8rem; font-weight:800; margin-top:8px; color:#EF4444;">₹0</h3>
+                        </div>
+                    </div>
+
+                    <!-- Search & Filter Area -->
+                    <div class="card" style="margin-bottom:24px; padding:20px; background: var(--bg-surface-raised);">
+                        <div style="display:flex; gap:16px; align-items: center;">
+                            <div style="position:relative; flex:1;">
+                                <i class="ph-bold ph-magnifying-glass" style="position:absolute; left:16px; top:50%; transform:translateY(-50%); color:var(--primary); font-size: 1.2rem; opacity:0.7;"></i>
+                                <input type="text" id="purchaseSearch" oninput="filterPurchases()" placeholder="Search POs, Suppliers, or Products..." style="padding-left:48px; margin-top:0; background:var(--input-bg); height: 50px; font-size: 1rem; border-radius: 12px; border: 1px solid var(--border); color: var(--text-primary);">
+                            </div>
+                            <select id="statusFilter" onchange="filterPurchases()" style="width:200px; margin-top:0; background:var(--input-bg); height: 50px; border-radius: 12px; border: 1px solid var(--border); color: var(--text-primary);">
+                                <option value="all">All Statuses</option>
+                                <option value="Paid">Paid</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Partial">Partial</option>
+                            </select>
+                            <button class="btn-secondary" style="height: 50px; width: 50px; padding:0; display:flex; align-items:center; justify-content:center; border-radius: 12px;" onclick="loadPurchases()">
+                                <i class="ph-bold ph-arrows-clockwise" style="font-size: 1.4rem; color: var(--primary);"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Premium Table Container -->
+                    <div class="card" style="padding:0; overflow:hidden; border: 1px solid var(--border); background: var(--bg-surface);">
+                        <table class="purchase-table">
+                            <thead>
+                                <tr>
+                                    <th>PO Reference</th>
+                                    <th>Product Details</th>
+                                    <th>Supplier</th>
+                                    <th style="text-align:center;">Qty</th>
+                                    <th style="text-align:right;">Unit Cost</th>
+                                    <th style="text-align:right;">Total Amount</th>
+                                    <th>Status</th>
+                                    <th style="text-align:right;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="purchaseTableBody">
+                                <tr>
+                                    <td colspan="8" style="padding:80px; text-align:center; color:var(--text-muted);">
+                                        <div style="display:flex; flex-direction:column; align-items:center; gap:16px;">
+                                            <i class="ph-bold ph-circle-notch ph-spin" style="font-size:2.5rem; color: var(--primary);"></i>
+                                            <p style="font-weight: 500; letter-spacing: 0.02em;">Accessing Ledger Records...</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modernized Add Purchase Modal -->
+    <div class="modal-overlay" id="addPurchaseModal" style="display:none;">
+        <div class="modal-card" style="max-width:640px; padding: 40px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:32px; border-bottom: 1px solid var(--border); padding-bottom:20px;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <div style="width:40px; height:40px; background:var(--primary-glow); border-radius:10px; display:flex; align-items:center; justify-content:center;">
+                        <i class="ph-bold ph-shopping-cart" style="color:var(--primary); font-size:1.4rem;"></i>
+                    </div>
+                    <h3 style="margin:0; font-size:1.4rem; font-weight:800; letter-spacing:-0.02em;">New Purchase Record</h3>
+                </div>
+                <button onclick="closeAddModal()" style="background:transparent; border:none; color:var(--text-muted); cursor:pointer; font-size:1.5rem;"><i class="ph-bold ph-x"></i></button>
+            </div>
+
+            <div style="display:grid; gap:24px;">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+                    <div>
+                        <label style="font-size:0.85rem; color:var(--text-sub); font-weight:700; margin-bottom:8px; display:block;">Product Name *</label>
+                        <div style="position:relative;">
+                            <input type="text" id="poProductSearch" list="productSuggestions" placeholder="Type product name..." style="height: 48px; border-radius: 10px; padding-left: 14px;" onchange="onProductSelect()">
+                            <datalist id="productSuggestions">
+                                <!-- Populated by JS -->
+                            </datalist>
+                        </div>
+                    </div>
+                    <div>
+                        <label style="font-size:0.85rem; color:var(--text-sub); font-weight:700; margin-bottom:8px; display:block;">Supplier Name *</label>
+                        <input type="text" id="poSupplier" placeholder="Enter Supplier" style="height: 48px; border-radius: 10px;">
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:20px;">
+                    <div>
+                        <label style="font-size:0.85rem; color:var(--text-sub); font-weight:700; margin-bottom:8px; display:block;">Quantity *</label>
+                        <input type="number" id="poQty" placeholder="0" min="1" oninput="calcTotal()" style="height: 48px; border-radius: 10px;">
+                    </div>
+                    <div>
+                        <label style="font-size:0.85rem; color:var(--text-sub); font-weight:700; margin-bottom:8px; display:block;">Unit Cost (₹) *</label>
+                        <input type="number" id="poCost" placeholder="0.00" oninput="calcTotal()" style="height: 48px; border-radius: 10px;">
+                    </div>
+                    <div>
+                        <label style="font-size:0.85rem; color:var(--text-sub); font-weight:700; margin-bottom:8px; display:block;">Total Amount</label>
+                        <input type="text" id="poTotal" placeholder="₹0" readonly style="height: 48px; border-radius: 10px; background:rgba(212,175,55,0.05); color:var(--primary); font-weight:800; border-color: var(--primary);">
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+                    <div>
+                        <label style="font-size:0.85rem; color:var(--text-sub); font-weight:700; margin-bottom:8px; display:block;">PO Date</label>
+                        <input type="date" id="poDate" style="height: 48px; border-radius: 10px;">
+                    </div>
+                    <div>
+                        <label style="font-size:0.85rem; color:var(--text-sub); font-weight:700; margin-bottom:8px; display:block;">Payment Status</label>
+                        <select id="poStatus" style="margin-top:0; height: 48px; border-radius: 10px;">
+                            <option value="Paid">Paid</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Partial">Partial</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label style="font-size:0.85rem; color:var(--text-sub); font-weight:700; margin-bottom:8px; display:block;">Notes / External Reference</label>
+                    <input type="text" id="poNotes" placeholder="e.g. Invoice #2026-X, Shipping details..." style="height: 48px; border-radius: 10px;">
+                </div>
+
+                <div style="background:rgba(16, 185, 129, 0.03); border:1px solid rgba(16, 185, 129, 0.15); border-radius:12px; padding:16px; display:flex; gap:12px; align-items:center;">
+                    <i class="ph-bold ph-shield-check" style="color:#10B981; font-size: 1.2rem;"></i>
+                    <p style="font-size:0.85rem; color:#10B981; margin:0; line-height: 1.4;">
+                        <strong>Stock Sync Active:</strong> Finalizing this order will automatically increment the selected product's warehouse count.
+                    </p>
+                </div>
+            </div>
+
+            <div style="display:flex; gap:16px; margin-top:32px;">
+                <button class="btn-secondary" style="flex:1; height: 55px;" onclick="closeAddModal()">Dismiss</button>
+                <button class="btn-gold" style="flex:2; height: 55px; font-size: 1.1rem;" id="savePOBtn" onclick="savePurchase()">
+                    <i class="ph-bold ph-check-circle"></i> Commit Purchase Record
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allPurchases = [];
+        let allProducts  = [];
+
+        const showAlert = (title, msg) => {
+            document.getElementById('alertTitle').innerText = title;
+            document.getElementById('alertMsg').innerText   = msg;
+            const al = document.getElementById('customAlert');
+            al.classList.add('show');
+            setTimeout(() => al.classList.remove('show'), 3500);
+        };
+
+        // ── INIT ────────────────────────────────────────────────
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('poDate').value = new Date().toISOString().split('T')[0];
+            loadPurchases();
+            loadProductsForSelect();
+            
+            // Start Live Clock
+            setInterval(() => {
+                const el = document.getElementById('liveClock');
+                if(el) el.innerText = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            }, 1000);
+        });
+
+        function loadPurchases() {
+            if (typeof google !== 'undefined') {
+                google.script.run.withSuccessHandler(data => {
+                    allPurchases = data || [];
+                    renderPurchases(allPurchases);
+                    updateStats(allPurchases);
+                }).getServerData('purchases');
+            } else {
+                allPurchases = JSON.parse(localStorage.getItem('purchases') || '[]');
+                renderPurchases(allPurchases);
+                updateStats(allPurchases);
+            }
+        }
+
+        function loadProductsForSelect() {
+            const populate = (data) => {
+                allProducts = data || [];
+                const datalist = document.getElementById('productSuggestions');
+                datalist.innerHTML = '';
+                allProducts.forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p.name;
+                    datalist.appendChild(opt);
+                });
+            };
+
+            if (typeof google !== 'undefined') {
+                google.script.run.withSuccessHandler(populate).getServerData('products');
+            } else {
+                populate(JSON.parse(localStorage.getItem('products') || '[]'));
+            }
+        }
+
+        function onProductSelect() {
+            const nameInput = document.getElementById('poProductSearch').value;
+            const product = allProducts.find(p => p.name === nameInput);
+            if (product) {
+                document.getElementById('poCost').value = product.buy_rate || 0;
+                calcTotal();
+            }
+        }
+
+        function calcTotal() {
+            const qty  = parseFloat(document.getElementById('poQty').value)  || 0;
+            const cost = parseFloat(document.getElementById('poCost').value) || 0;
+            document.getElementById('poTotal').value = '₹' + (qty * cost).toLocaleString('en-IN');
+        }
+
+        function savePurchase() {
+            const productName = document.getElementById('poProductSearch').value.trim();
+            const product     = allProducts.find(p => p.name === productName);
+            const productId   = product ? product.id : null;
+            
+            const supplier    = document.getElementById('poSupplier').value.trim();
+            const qty         = parseInt(document.getElementById('poQty').value)   || 0;
+            const cost        = parseFloat(document.getElementById('poCost').value) || 0;
+            const status      = document.getElementById('poStatus').value;
+            const date        = document.getElementById('poDate').value;
+            const notes       = document.getElementById('poNotes').value.trim();
+
+            if (!productName) return showAlert('Validation Error', 'Product name is required.');
+            if (!supplier)    return showAlert('Validation Error', 'Supplier identification is required.');
+            if (qty < 1)      return showAlert('Validation Error', 'Quantity must be at least 1 unit.');
+            if (cost <= 0)    return showAlert('Validation Error', 'Valid unit cost is required.');
+
+            const purchase = {
+                productId, productName, supplier,
+                qty, cost, total: qty * cost,
+                status, date, notes
+            };
+
+            const btn = document.getElementById('savePOBtn');
+            btn.innerHTML = '<i class="ph-bold ph-circle-notch ph-spin"></i> Committing...';
+            btn.disabled = true;
+
+            // Cloud Sync: Google Form Integration
+            const formUrl = "https://docs.google.com/forms/d/e/1FAIpQLScGVMZTcIqE6OBBZw9kM7xCCUONz6vZ5vpc9qn9YLxkGWExZw/formResponse";
+            const formData = new URLSearchParams();
+            formData.append('entry.644063933', productName);
+            formData.append('entry.1734356758', supplier);
+            formData.append('entry.957486023', qty);
+            formData.append('entry.1517403960', cost);
+            formData.append('entry.118644524', qty * cost);
+            formData.append('entry.1475139309', date);
+            formData.append('entry.1697056103', status);
+            formData.append('entry.752486513', notes);
+
+            fetch(formUrl, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString()
+            }).then(() => {
+                if (typeof google !== 'undefined') {
+                    google.script.run
+                        .withSuccessHandler(res => {
+                            btn.innerHTML = '<i class="ph-bold ph-check-circle"></i> Commit Purchase Record';
+                            btn.disabled  = false;
+                            if (res.success) {
+                                showAlert('Success', 'Order finalized and synchronized with Cloud.');
+                                closeAddModal();
+                                loadPurchases();
+                            } else showAlert('Error', res.message);
+                        })
+                        .savePurchase(purchase);
+                } else {
+                    saveOfflinePurchase(purchase);
+                    btn.innerHTML = '<i class="ph-bold ph-check-circle"></i> Commit Purchase Record';
+                    btn.disabled  = false;
+                    showAlert('Success', 'Order saved locally and synced with Cloud.');
+                }
+            }).catch(err => {
+                console.error('Cloud Sync Error:', err);
+                if (typeof google !== 'undefined') {
+                    google.script.run.withSuccessHandler(() => {
+                        showAlert('Partial Success', 'Saved locally, but Cloud Sync failed.');
+                        closeAddModal();
+                        loadPurchases();
+                    }).savePurchase(purchase);
+                } else {
+                    saveOfflinePurchase(purchase);
+                }
+            });
+        }
+
+        function saveOfflinePurchase(purchase) {
+            const purchases = JSON.parse(localStorage.getItem('purchases') || '[]');
+            const poId = 'PO-' + Math.random().toString(36).substr(2, 6).toUpperCase();
+            purchases.push({ ...purchase, id: poId, createdAt: new Date().toISOString() });
+            localStorage.setItem('purchases', JSON.stringify(purchases));
+
+            // Only update stock if product exists
+            if (purchase.productId) {
+                const products = JSON.parse(localStorage.getItem('products') || '[]');
+                const prod = products.find(p => p.id === purchase.productId);
+                if (prod) {
+                    prod.qty = (parseInt(prod.qty) || 0) + purchase.qty;
+                    localStorage.setItem('products', JSON.stringify(products));
+                }
+            }
+
+            showAlert('Saved Offline', `Order ${poId} synchronized with local inventory.`);
+            closeAddModal();
+            loadPurchases();
+        }
+
+        function filterPurchases() {
+            const q = document.getElementById('purchaseSearch').value.toLowerCase();
+            const status = document.getElementById('statusFilter').value;
+            const filtered = allPurchases.filter(p => {
+                const matchQ = (p.productName || '').toLowerCase().includes(q) ||
+                               (p.supplier    || '').toLowerCase().includes(q) ||
+                               (p.id          || '').toLowerCase().includes(q);
+                const matchS = status === 'all' || p.status === status;
+                return matchQ && matchS;
+            });
+            renderPurchases(filtered);
+        }
+
+        function renderPurchases(data) {
+            const tbody = document.getElementById('purchaseTableBody');
+            if (!data || data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" style="padding:100px; text-align:center; color:var(--text-muted);">
+                    <div style="opacity: 0.5;">
+                        <i class="ph-bold ph-shopping-cart-simple" style="font-size:4rem; margin-bottom:20px;"></i>
+                        <p style="font-size: 1.1rem; font-weight: 500;">No purchase orders found.</p>
+                    </div>
+                </td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = data.map(p => {
+                const statusClass = p.status === 'Paid' ? 'status-paid' : (p.status === 'Pending' ? 'status-pending' : 'status-partial');
+                const statusIcon  = p.status === 'Paid' ? 'ph-check-circle' : (p.status === 'Pending' ? 'ph-clock' : 'ph-info');
+                
+                return `
+                <tr>
+                    <td style="font-family:monospace; font-weight:700; color:var(--text-muted); font-size:0.85rem;">${p.id || '—'}</td>
+                    <td>
+                        <p style="font-weight:700; color:var(--text-primary); margin:0;">${p.productName || '—'}</p>
+                        <p style="font-size:0.7rem; color:var(--text-muted); margin:0;">${p.date || '—'}</p>
+                    </td>
+                    <td style="font-weight:500;">${p.supplier || '—'}</td>
+                    <td style="text-align:center; font-weight:800;">${p.qty}</td>
+                    <td style="text-align:right; font-weight:600;">₹${(p.cost || 0).toLocaleString('en-IN')}</td>
+                    <td style="text-align:right; font-weight:800; color:var(--primary); font-size: 1rem;">₹${(p.total || 0).toLocaleString('en-IN')}</td>
+                    <td>
+                        <span class="status-badge ${statusClass}">
+                            <i class="ph-fill ${statusIcon}"></i> ${p.status}
+                        </span>
+                    </td>
+                    <td style="text-align:right;">
+                        <button class="btn-secondary" style="height:32px; width:32px; padding:0; border-radius:8px; color:#EF4444;" onclick="deletePurchase('${p.id}')">
+                            <i class="ph-bold ph-trash"></i>
+                        </button>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        function updateStats(data) {
+            const now = new Date();
+            let total = 0, thisMonth = 0, pending = 0;
+            data.forEach(p => {
+                total += p.total || 0;
+                if (p.status !== 'Paid') pending += p.total || 0;
+                const d = new Date(p.date || p.createdAt);
+                if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) thisMonth += p.total || 0;
+            });
+            document.getElementById('statTotal').innerText   = '₹' + Math.round(total).toLocaleString('en-IN');
+            document.getElementById('statMonth').innerText   = '₹' + Math.round(thisMonth).toLocaleString('en-IN');
+            document.getElementById('statCount').innerText   = data.length;
+            document.getElementById('statPending').innerText = '₹' + Math.round(pending).toLocaleString('en-IN');
+        }
+
+        function deletePurchase(id) {
+            if (!confirm('Permanently remove this purchase order? (Inventory count will not be reversed)')) return;
+            if (typeof google !== 'undefined') {
+                google.script.run.withSuccessHandler(res => {
+                    if (res.success) { showAlert('Deleted', 'Record removed.'); loadPurchases(); }
+                }).deletePurchase(id);
+            } else {
+                let purchases = JSON.parse(localStorage.getItem('purchases') || '[]');
+                purchases = purchases.filter(p => p.id !== id);
+                localStorage.setItem('purchases', JSON.stringify(purchases));
+                showAlert('Deleted', 'Record removed from local storage.');
+                loadPurchases();
+            }
+        }
+
+        function openAddModal() {
+            document.getElementById('poProductSearch').value = '';
+            document.getElementById('poSupplier').value      = '';
+            document.getElementById('poQty').value           = '';
+            document.getElementById('poCost').value          = '';
+            document.getElementById('poTotal').value         = '₹0';
+            document.getElementById('poStatus').value        = 'Paid';
+            document.getElementById('poNotes').value         = '';
+            document.getElementById('poDate').value          = new Date().toISOString().split('T')[0];
+            document.getElementById('addPurchaseModal').style.display = 'flex';
+        }
+
+        function closeAddModal() {
+            document.getElementById('addPurchaseModal').style.display = 'none';
+        }
+    </script>
+<script>
+    // Update Topbar Business Name
+    document.addEventListener('DOMContentLoaded', () => {
+        const bizName = localStorage.getItem('bloomeor_biz_name') || 'Bloomeor Retail';
+        const bizElements = document.querySelectorAll('#topbarBizName');
+        bizElements.forEach(el => el.innerText = bizName);
+    });
+</script>
+</body>
+</html>
+<script>
+    // Update Topbar Business Name
+    document.addEventListener('DOMContentLoaded', () => {
+        const bizName = localStorage.getItem('bloomeor_biz_name') || 'Bloomeor Retail';
+        const bizElements = document.querySelectorAll('#topbarBizName');
+        bizElements.forEach(el => el.innerText = bizName);
+    });
+</script>
+</body>
+</html>
+
+<script>
+    // Update Topbar Business Name
+    document.addEventListener('DOMContentLoaded', () => {
+        const bizName = localStorage.getItem('bloomeor_biz_name') || 'Bloomeor Retail';
+        const bizElements = document.querySelectorAll('#topbarBizName');
+        bizElements.forEach(el => el.innerText = bizName);
+    });
+</script>
+</body>
+</html>

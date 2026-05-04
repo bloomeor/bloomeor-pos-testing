@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <base target="_top">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bloomeor POS — Customers</title>
+    <link rel="icon" type="image/x-icon" href="../images/logo/Bloomeor-logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="../css/styles.css">
+    <style>
+        /* Ultra-Premium Customer Portal Enhancements */
+        .glass-search-bar {
+            background: var(--bg-surface);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+            margin-bottom: 40px;
+            animation: fadeSlideDown 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        
+        .customer-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.1rem;
+            position: relative;
+            overflow: hidden;
+            transition: var(--transition);
+        }
+        
+        .customer-avatar::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
+        }
+
+        .customer-row:hover {
+            background: rgba(var(--glass-white), 0.03) !important;
+            transform: scale(1.005);
+            cursor: pointer;
+        }
+
+        .badge-premium {
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .stat-card-mini {
+            padding: 20px;
+            border-radius: var(--radius-lg);
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            transition: var(--transition);
+        }
+        .stat-card-mini:hover {
+            border-color: var(--primary);
+            transform: translateY(-4px);
+        }
+
+        @keyframes fadeSlideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .loyalty-progress {
+            height: 4px;
+            background: rgba(var(--glass-white), 0.1);
+            border-radius: 2px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+        .loyalty-progress-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 2px;
+        }
+    </style>
+    <script>
+        (function() {
+            const settings = JSON.parse(localStorage.getItem('bloomeor_settings') || '{}');
+            if (settings.appTheme === 'light') {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+    <link rel="manifest" href="../../manifest.json">
+    <script src="../js/auth.js"></script>
+</head>
+<body>
+
+<div id="customAlert"><strong id="alertTitle">Info</strong><p id="alertMsg"></p></div>
+
+<div id="app-layout">
+    <div class="sidebar" id="sidebar">
+        <div class="logo">
+            <img src="../images/logo/Bloomeor-logo.png" alt="Logo" style="max-height:38px;width:auto;filter:drop-shadow(0 0 8px rgba(212,175,55,0.3));" onerror="this.style.display='none';">
+            <span style="margin-left:6px;color:var(--text-primary);font-size:1.5rem;font-weight:700;letter-spacing:-0.05em;">Bloomeor</span>
+        </div>
+        <div class="nav-header">NAVIGATION</div>
+        <div id="navMenu">
+            <a class="nav-link" href="dashboard.html" data-permission="view_dashboard"><i class="ph-bold ph-chart-line-up"></i> Dashboard</a>
+            <a class="nav-link" href="pos.html" data-permission="view_pos"><i class="ph-bold ph-cash-register"></i> POS / New Sale</a>
+            <a class="nav-link" href="orders.html" data-permission="view_pos"><i class="ph-bold ph-cooking-pot"></i> Active Orders</a>
+            <a class="nav-link" href="sales.html" data-permission="view_sales"><i class="ph-bold ph-receipt"></i> Sales List</a>
+            <a class="nav-link active" href="customers.html" data-permission="view_customers"><i class="ph-bold ph-users"></i> Customers</a>
+            <a class="nav-link" href="inventory.html" data-permission="view_inventory"><i class="ph-bold ph-package"></i> Inventory</a>
+            <a class="nav-link" href="purchases.html" data-permission="view_purchases"><i class="ph-bold ph-shopping-cart"></i> Purchases</a>
+            <a class="nav-link" href="suppliers.html" data-permission="view_suppliers"><i class="ph-bold ph-handshake"></i> Suppliers</a>
+            <a class="nav-link" href="payments.html" data-permission="view_payments"><i class="ph-bold ph-money"></i> Payments</a>
+            <a class="nav-link" href="expenses.html" data-permission="view_expenses"><i class="ph-bold ph-file-text"></i> Expenses</a>
+            <a class="nav-link" href="reminders.html"><i class="ph-fill ph-bell" style="color:#EF4444;"></i> Due Reminders</a>
+            <a class="nav-link" href="reports.html" data-permission="view_reports"><i class="ph-bold ph-chart-bar"></i> Reports</a>
+            <a class="nav-link" href="settings.html" data-permission="admin_only"><i class="ph-bold ph-gear"></i> Settings</a>
+        </div>
+
+        <div class="nav-header" style="margin-top: auto;">HELP & SUPPORT</div>
+        <div style="padding: 16px; margin: 0 16px 20px 16px; background: rgba(var(--glass-white), 0.03); border: 1px solid var(--border); border-radius: 18px; position: relative; overflow: hidden; animation: fadeIn 0.8s ease;">
+            <div style="position: absolute; top: 10px; right: 10px; display: flex; align-items: center; gap: 5px;">
+                <div style="width: 6px; height: 6px; background: #10B981; border-radius: 50%; box-shadow: 0 0 10px #10B981;"></div>
+                <span style="font-size: 0.6rem; color: #10B981; font-weight: 800; letter-spacing: 0.05em;">LIVE</span>
+            </div>
+            
+            <div style="font-size: 0.65rem; color: var(--text-muted); font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px;">Premium Care</div>
+            
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                <div style="width: 36px; height: 36px; background: var(--primary-glow); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1.1rem;">
+                    <i class="ph-bold ph-headset"></i>
+                </div>
+                <div>
+                    <div style="font-weight: 800; font-size: 0.95rem; color: var(--text-primary); letter-spacing: -0.01em;">9902356539</div>
+                    <div style="font-size: 0.65rem; color: var(--text-muted); font-weight: 500;">Concierge Support</div>
+                </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <a href="tel:9902356539" style="text-decoration: none; background: var(--bg-surface); border: 1px solid var(--border); padding: 8px; border-radius: 10px; color: var(--text-primary); font-size: 0.7rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px; transition: var(--transition);" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'">
+                    <i class="ph-bold ph-phone-call"></i> Call
+                </a>
+                <a href="https://wa.me/919902356539" target="_blank" style="text-decoration: none; background: rgba(37, 211, 102, 0.08); border: 1px solid rgba(37, 211, 102, 0.2); padding: 8px; border-radius: 10px; color: #25D366; font-size: 0.7rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px; transition: var(--transition);" onmouseover="this.style.background='rgba(37, 211, 102, 0.15)'" onmouseout="this.style.background='rgba(37, 211, 102, 0.08)'">
+                    <i class="ph-bold ph-whatsapp-logo"></i> Chat
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="topbar">
+                            <div style="display: flex; flex-direction: column; align-items: flex-end; padding-right: 15px; border-right: 1px solid var(--border); margin-right: 5px;">
+                    <span id="topbarBizName" style="font-weight: 800; color: var(--primary); font-size: 0.9rem; letter-spacing: -0.01em;">Bloomeor Retail</span>
+                    <span style="font-size: 0.6rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Authorized Outlet</span>
+                </div>
+<div style="display:flex; align-items:center; gap:12px;">
+                <button class="btn-secondary" onclick="window.history.back()" style="padding:8px 12px; height:auto;">
+                    <i class="ph-bold ph-caret-left"></i>
+                </button>
+                <h3 style="color:var(--text-sub)">Client Relations</h3>
+            </div>
+            <div style="display:flex;gap:15px;align-items:center;">
+                <div style="text-align:right; margin-right:10px;">
+                    <div style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">ACTIVE DIRECTORY</div>
+                    <div id="activeSyncLabel" style="font-size:0.65rem; color:#10B981; font-weight:800;">• CLOUD SYNC ON</div>
+                </div>
+                <button class="btn-gold" onclick="openCustomerModal()" style="height:38px;padding:0 18px;font-size:0.85rem;display:flex;align-items:center;gap:8px;">
+                    <i class="ph-bold ph-user-plus"></i> New Profile
+                </button>
+            </div>
+        </div>
+
+        <div class="view-container">
+            <div class="page-view active" style="display:block;animation:none;">
+
+                <!-- Hero Section -->
+                <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:40px; margin-top:20px;">
+                    <div>
+                        <h2 style="font-size:2.5rem; font-weight:900; letter-spacing:-0.04em; background: linear-gradient(135deg, #FFF, #AAA); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Directory</h2>
+                        <p style="color:var(--text-muted); font-size:1.1rem; margin-top:8px; font-weight:500;">Intelligent relationship management & loyalty analytics.</p>
+                    </div>
+                    <div style="display:flex; gap:12px;">
+                        <button class="btn-secondary" onclick="exportCustomers()" style="height:44px; padding:0 20px; font-weight:700; border-radius:14px; display:flex; align-items:center; gap:10px;">
+                            <i class="ph-bold ph-file-xls" style="color:#10B981; font-size:1.4rem;"></i> Export Data
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Strategic KPI Cards -->
+                <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:20px; margin-bottom:40px;">
+                    <div class="stat-card-mini">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                            <span style="font-size:0.7rem; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em;">Total Clients</span>
+                            <i class="ph-bold ph-users" style="color:var(--primary); font-size:1.2rem;"></i>
+                        </div>
+                        <h3 id="statTotalCust" style="font-size:1.8rem; font-weight:800; color:var(--text-primary);">0</h3>
+                        <div style="font-size:0.7rem; color:#10B981; font-weight:700; margin-top:8px;">+12% this month</div>
+                    </div>
+                    <div class="stat-card-mini">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                            <span style="font-size:0.7rem; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em;">VIP High-Value</span>
+                            <i class="ph-bold ph-crown" style="color:#F59E0B; font-size:1.2rem;"></i>
+                        </div>
+                        <h3 id="statVIPCount" style="font-size:1.8rem; font-weight:800; color:#F59E0B;">0</h3>
+                        <div style="font-size:0.7rem; color:var(--text-muted); font-weight:600; margin-top:8px;">Top 5% Spenders</div>
+                    </div>
+                    <div class="stat-card-mini">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                            <span style="font-size:0.7rem; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em;">Avg. Loyalty</span>
+                            <i class="ph-bold ph-heart-straight" style="color:#EF4444; font-size:1.2rem;"></i>
+                        </div>
+                        <h3 id="statAvgVisits" style="font-size:1.8rem; font-weight:800; color:#EF4444;">0.0</h3>
+                        <div style="font-size:0.7rem; color:var(--text-muted); font-weight:600; margin-top:8px;">Visits per user</div>
+                    </div>
+                    <div class="stat-card-mini">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                            <span style="font-size:0.7rem; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em;">Active Leads</span>
+                            <i class="ph-bold ph-lightning" style="color:#3B82F6; font-size:1.2rem;"></i>
+                        </div>
+                        <h3 id="statNewLeads" style="font-size:1.8rem; font-weight:800; color:#3B82F6;">0</h3>
+                        <div style="font-size:0.7rem; color:#3B82F6; font-weight:700; margin-top:8px;">New last 7 days</div>
+                    </div>
+                </div>
+
+                <!-- Premium Search Bar -->
+                <div class="glass-search-bar">
+                    <i class="ph-bold ph-magnifying-glass" style="color:var(--primary); font-size:1.4rem;"></i>
+                    <input type="text" id="custSearch" oninput="filterCustomers()" placeholder="Search by name, phone, or identification..." style="background:transparent; border:none; color:var(--text-primary); font-size:1.1rem; width:100%; outline:none; font-weight:500;">
+                    <div style="height:24px; width:1px; background:var(--border);"></div>
+                    <select id="segmentFilter" onchange="filterCustomers()" style="background:transparent; border:none; color:var(--text-sub); font-weight:700; outline:none; cursor:pointer; padding:0 10px;">
+                        <option value="all">All Segments</option>
+                        <option value="VIP">VIP</option>
+                        <option value="Loyal">Loyal</option>
+                        <option value="Corporate">Corporate</option>
+                        <option value="Regular">Regular</option>
+                    </select>
+                    <button class="action-btn" onclick="loadCustomers()" style="border:none; background:transparent;">
+                        <i class="ph-bold ph-arrows-clockwise"></i>
+                    </button>
+                </div>
+
+                <!-- Directory Container -->
+                <div class="premium-panel" style="padding:0; overflow:hidden;">
+                    <table style="width:100%; border-collapse:collapse; text-align:left;">
+                        <thead>
+                            <tr style="border-bottom:1px solid var(--border); background:rgba(var(--glass-white), 0.02);">
+                                <th style="padding:20px 24px; color:var(--text-muted); font-size:0.7rem; font-weight:800; text-transform:uppercase; letter-spacing:0.1em; width:80px;">Ref</th>
+                                <th style="padding:20px 24px; color:var(--text-muted); font-size:0.7rem; font-weight:800; text-transform:uppercase; letter-spacing:0.1em;">Customer Identity</th>
+                                <th style="padding:20px 24px; color:var(--text-muted); font-size:0.7rem; font-weight:800; text-transform:uppercase; letter-spacing:0.1em;">Contact Info</th>
+                                <th style="padding:20px 24px; color:var(--text-muted); font-size:0.7rem; font-weight:800; text-transform:uppercase; letter-spacing:0.1em;">Segment</th>
+                                <th style="padding:20px 24px; color:var(--text-muted); font-size:0.7rem; font-weight:800; text-transform:uppercase; letter-spacing:0.1em;">Engagement</th>
+                                <th style="padding:20px 24px; color:var(--text-muted); font-size:0.7rem; font-weight:800; text-transform:uppercase; letter-spacing:0.1em; text-align:right;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customerTableBody">
+                            <tr><td colspan="6" style="padding:100px;text-align:center;color:var(--text-muted);">
+                                <i class="ph-bold ph-circle-notch ph-spin" style="font-size:2.5rem;display:block;margin:0 auto 15px;color:var(--primary);"></i>
+                                Syncing with cloud database...
+                            </td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add/Edit Modal -->
+<div class="modal-overlay" id="customerModal">
+    <div class="modal-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;border-bottom:1px solid var(--border);padding-bottom:18px;">
+            <div>
+                <h3 id="modalTitle" style="margin:0; font-size:1.5rem;">New Customer</h3>
+                <p style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">Fill in the details below to register a new client.</p>
+            </div>
+            <button class="action-btn" onclick="closeCustomerModal()">
+                <i class="ph-bold ph-x"></i>
+            </button>
+        </div>
+        
+        <form id="customerForm" onsubmit="handleCustomerSubmit(event)">
+            <input type="hidden" id="custId">
+            
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:15px;">
+                <div>
+                    <label style="font-size:0.8rem; font-weight:600; color:var(--text-sub);">Full Name *</label>
+                    <input type="text" id="custName" required placeholder="Ex: John Doe">
+                </div>
+                <div>
+                    <label style="font-size:0.8rem; font-weight:600; color:var(--text-sub);">Phone Number *</label>
+                    <input type="text" id="custPhone" required placeholder="Ex: 9876543210">
+                </div>
+            </div>
+
+            <div style="margin-bottom:15px;">
+                <label style="font-size:0.8rem; font-weight:600; color:var(--text-sub);">Email Address</label>
+                <input type="email" id="custEmail" placeholder="john@example.com">
+            </div>
+
+            <div style="margin-bottom:15px;">
+                <label style="font-size:0.8rem; font-weight:600; color:var(--text-sub);">Category / Segment</label>
+                <select id="custCategory">
+                    <option value="General">General</option>
+                    <option value="VIP">VIP</option>
+                    <option value="Corporate">Corporate</option>
+                    <option value="Loyal">Loyal</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom:15px;">
+                <label style="font-size:0.8rem; font-weight:600; color:var(--text-sub);">Billing Address</label>
+                <textarea id="custAddress" rows="3" style="width:100%; background:var(--input-bg); border:1px solid var(--border); border-radius:8px; padding:12px; color:var(--text-primary); margin-top:6px;" placeholder="Complete street address..."></textarea>
+            </div>
+
+            <div style="display:flex;gap:12px;margin-top:32px;">
+                <button type="button" class="btn-secondary" style="flex:1;" onclick="closeCustomerModal()">Discard</button>
+                <button type="submit" class="btn-gold" id="saveBtn" style="flex:2;">
+                    <i class="ph-bold ph-check-circle"></i> Save Customer Profile
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    let customers = [];
+    let filtered  = [];
+
+    const showAlert = (title, msg) => {
+        document.getElementById('alertTitle').innerText = title;
+        document.getElementById('alertMsg').innerText   = msg;
+        const al = document.getElementById('customAlert');
+        al.classList.add('show');
+        setTimeout(() => al.classList.remove('show'), 3500);
+    };
+
+    document.addEventListener('DOMContentLoaded', loadCustomers);
+
+    function calculateMetrics(custList) {
+        const allSales = JSON.parse(localStorage.getItem('all_sales') || '[]');
+        return custList.map(c => {
+            const mySales = allSales.filter(s => 
+                (s.customer_phone === c.phone) || 
+                (s.payment?.customerPhone === c.phone) ||
+                (s.customer_name === c.name)
+            );
+            const totalSpend = mySales.reduce((sum, s) => sum + (s.total || s.cart?.total || 0), 0);
+            return {
+                ...c,
+                totalSpend,
+                visitCount: mySales.length,
+                lastVisit: mySales.length > 0 ? new Date(Math.max(...mySales.map(s => new Date(s.date)))).toLocaleDateString('en-IN', {day:'numeric', month:'short', year:'numeric'}) : 'No History'
+            };
+        });
+    }
+
+    function loadCustomers() {
+        if (typeof google !== 'undefined') {
+            google.script.run.withSuccessHandler(data => {
+                customers = calculateMetrics(data || []);
+                applyFilters();
+                updateStats();
+            }).getServerData('customers');
+        } else {
+            // Real local persistence for offline mode
+            const localData = JSON.parse(localStorage.getItem('bloomeor_local_customers') || '[]');
+            customers = calculateMetrics(localData);
+            applyFilters();
+            updateStats();
+        }
+    }
+
+    function updateStats() {
+        const now = new Date();
+        const sevenDaysAgo = new Date(now.setDate(now.getDate() - 7));
+        
+        const vipCount = customers.filter(c => c.category === 'VIP' || c.totalSpend > 5000).length;
+        const avgVisits = customers.length > 0 ? (customers.reduce((s, c) => s + c.visitCount, 0) / customers.length).toFixed(1) : '0.0';
+        
+        document.getElementById('statTotalCust').innerText = customers.length;
+        document.getElementById('statVIPCount').innerText = vipCount;
+        document.getElementById('statAvgVisits').innerText = avgVisits;
+        document.getElementById('statNewLeads').innerText = customers.length; // Placeholder for new growth
+    }
+
+    function filterCustomers() { applyFilters(); }
+
+    function applyFilters() {
+        const q   = document.getElementById('custSearch').value.toLowerCase();
+        const seg = document.getElementById('segmentFilter').value;
+
+        filtered = customers.filter(c => {
+            const matchQ = !q || 
+                (c.name || '').toLowerCase().includes(q) || 
+                (c.phone || '').toLowerCase().includes(q) || 
+                (c.email || '').toLowerCase().includes(q);
+            const matchS = seg === 'all' || c.category === seg;
+            return matchQ && matchS;
+        });
+
+        renderTable();
+    }
+
+    function renderTable() {
+        const tbody = document.getElementById('customerTableBody');
+        if (filtered.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" style="padding:80px; text-align:center; color:var(--text-muted);">
+                <i class="ph-bold ph-user-circle-plus" style="font-size:3rem; opacity:0.2;"></i>
+                <h3 style="margin-top:15px;">No Records Found</h3>
+                <p>Modify your search or add a new profile to the directory.</p>
+            </td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = filtered.map(c => {
+            const initials = c.name.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase();
+            const colors = ['#E2C275', '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
+            const avatarColor = colors[c.name.length % colors.length];
+
+            return `
+                <tr class="customer-row" style="border-bottom:1px solid var(--border); transition:var(--transition);">
+                    <td style="padding:20px 24px; font-family:monospace; font-size:0.75rem; color:var(--text-muted);">${c.id}</td>
+                    <td style="padding:20px 24px;">
+                        <div style="display:flex; align-items:center; gap:16px;">
+                            <div class="customer-avatar" style="background:${avatarColor}20; color:${avatarColor};">
+                                ${initials}
+                            </div>
+                            <div>
+                                <div style="font-weight:700; color:var(--text-primary); font-size:1rem;">${c.name}</div>
+                                <div style="font-size:0.75rem; color:var(--text-muted); font-weight:500;">${c.email || 'Email missing'}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="padding:20px 24px;">
+                        <div style="font-weight:600; font-size:0.9rem;">${c.phone}</div>
+                        <div style="font-size:0.7rem; color:var(--text-muted);">${c.address || 'No address'}</div>
+                    </td>
+                    <td style="padding:20px 24px;">
+                        <span class="badge-premium" style="background:${getCategoryBg(c.category)}; color:${getCategoryColor(c.category)};">
+                            <i class="${getCategoryIcon(c.category)}"></i> ${c.category}
+                        </span>
+                    </td>
+                    <td style="padding:20px 24px;">
+                        <div style="display:flex; justify-content:space-between; font-size:0.7rem; font-weight:700; margin-bottom:4px;">
+                            <span style="color:var(--text-muted);">VISITS: ${c.visitCount}</span>
+                            <span style="color:var(--primary);">₹${c.totalSpend.toLocaleString()}</span>
+                        </div>
+                        <div class="loyalty-progress"><div class="loyalty-progress-fill" style="width:${Math.min(c.visitCount * 10, 100)}%;"></div></div>
+                        <div style="font-size:0.65rem; color:var(--text-muted); margin-top:6px;">LAST: ${c.lastVisit}</div>
+                    </td>
+                    <td style="padding:20px 24px; text-align:right;">
+                        <div style="display:flex; gap:10px; justify-content:flex-end;">
+                            <button class="action-btn" onclick="openWhatsApp('${c.phone}')" style="background:#25D36615; color:#25D366; border-color:#25D36630;">
+                                <i class="ph-bold ph-whatsapp-logo"></i>
+                            </button>
+                            <button class="action-btn" onclick="editCustomer('${c.id}')">
+                                <i class="ph-bold ph-pencil-simple"></i>
+                            </button>
+                            <button class="action-btn" onclick="deleteCustomer('${c.id}')" style="background:#EF444415; color:#EF4444; border-color:#EF444430;">
+                                <i class="ph-bold ph-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    function getCategoryIcon(cat) {
+        switch(cat) {
+            case 'VIP': return 'ph-bold ph-crown';
+            case 'Loyal': return 'ph-bold ph-medal';
+            case 'Corporate': return 'ph-bold ph-buildings';
+            default: return 'ph-bold ph-user';
+        }
+    }
+
+    function getCategoryBg(cat) {
+        switch(cat) {
+            case 'VIP': return '#E2C27520';
+            case 'Loyal': return '#10B98120';
+            case 'Corporate': return '#3B82F620';
+            default: return '#64748B20';
+        }
+    }
+    function getCategoryColor(cat) {
+        switch(cat) {
+            case 'VIP': return '#E2C275';
+            case 'Loyal': return '#10B981';
+            case 'Corporate': return '#3B82F6';
+            default: return '#64748B';
+        }
+    }
+
+    function openCustomerModal() {
+        document.getElementById('modalTitle').innerText = 'New Customer';
+        document.getElementById('customerForm').reset();
+        document.getElementById('custId').value = '';
+        document.getElementById('customerModal').style.display = 'flex';
+    }
+
+    function closeCustomerModal() {
+        document.getElementById('customerModal').style.display = 'none';
+    }
+
+    function editCustomer(id) {
+        const c = customers.find(x => x.id === id);
+        if (!c) return;
+
+        document.getElementById('modalTitle').innerText = 'Edit Customer Profile';
+        document.getElementById('custId').value = c.id;
+        document.getElementById('custName').value = c.name;
+        document.getElementById('custPhone').value = c.phone;
+        document.getElementById('custEmail').value = c.email || '';
+        document.getElementById('custCategory').value = c.category || 'General';
+        document.getElementById('custAddress').value = c.address || '';
+        
+        document.getElementById('customerModal').style.display = 'flex';
+    }
+
+    function handleCustomerSubmit(e) {
+        e.preventDefault();
+        const btn = document.getElementById('saveBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="ph-bold ph-circle-notch ph-spin"></i> Processing...';
+
+        const name = document.getElementById('custName').value;
+        const phone = document.getElementById('custPhone').value;
+        const email = document.getElementById('custEmail').value;
+        const category = document.getElementById('custCategory').value;
+        const address = document.getElementById('custAddress').value;
+
+        // Google Form Integration
+        const formUrl = "https://docs.google.com/forms/d/e/1FAIpQLSf-S4qWalLkbI5pUd2ze9NTq-wafdS6OloCaMB5TmQPxHdOXg/formResponse";
+        
+        // Map fields to Google Form entries
+        const formData = new URLSearchParams();
+        formData.append('entry.1181697267', name);
+        formData.append('entry.2133479691', phone);
+        formData.append('entry.1517099126', email);
+        formData.append('entry.2074148917', category);
+        formData.append('entry.1450811799', address);
+
+        // Use fetch with no-cors to submit to Google Form
+        fetch(formUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: formData.toString()
+        }).then(() => {
+            showAlert('Success', 'Customer data saved to Cloud Database.');
+            closeCustomerModal();
+            btn.disabled = false;
+            btn.innerHTML = '<i class="ph-bold ph-check-circle"></i> Save Customer Profile';
+            
+            // Also save locally if in Apps Script environment or for immediate UI update
+            if (typeof google !== 'undefined') {
+                google.script.run.withSuccessHandler(() => {
+                    loadCustomers();
+                }).saveCustomer({ name, phone, email, category, address });
+            } else {
+                const local = JSON.parse(localStorage.getItem('bloomeor_local_customers') || '[]');
+                const editId = document.getElementById('custId').value;
+                
+                if (editId) {
+                    const idx = local.findIndex(x => x.id === editId);
+                    if (idx > -1) local[idx] = { id: editId, name, phone, email, category, address };
+                } else {
+                    const newId = 'CUST-' + Math.floor(1000 + Math.random() * 9000);
+                    local.push({ id: newId, name, phone, email, category, address });
+                }
+                
+                localStorage.setItem('bloomeor_local_customers', JSON.stringify(local));
+                loadCustomers();
+            }
+        }).catch(err => {
+            console.error('Submission error:', err);
+            showAlert('Error', 'Failed to sync with Cloud. Data saved locally.');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="ph-bold ph-check-circle"></i> Save Customer Profile';
+        });
+    }
+
+    function deleteCustomer(id) {
+        if (!confirm('Are you sure you want to permanently delete this customer record?')) return;
+        
+        if (typeof google !== 'undefined') {
+            google.script.run.withSuccessHandler(res => {
+                showAlert(res.success ? 'Deleted' : 'Error', res.message);
+                if (res.success) loadCustomers();
+            }).deleteCustomer(id);
+        } else {
+            const local = JSON.parse(localStorage.getItem('bloomeor_local_customers') || '[]');
+            const filtered = local.filter(x => x.id !== id);
+            localStorage.setItem('bloomeor_local_customers', JSON.stringify(filtered));
+            showAlert('Success', 'Record removed from system.');
+            loadCustomers();
+        }
+    }
+
+    function openWhatsApp(phone) {
+        if (!phone) return showAlert('Error', 'No phone number provided.');
+        const cleanPhone = phone.replace(/\D/g, '');
+        const url = `https://wa.me/${cleanPhone.length === 10 ? '91'+cleanPhone : cleanPhone}`;
+        window.open(url, '_blank');
+    }
+
+    function exportCustomers() {
+        if (customers.length === 0) return showAlert('Error', 'No data available for export.');
+        const ws = XLSX.utils.json_to_sheet(customers);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Customers");
+        XLSX.writeFile(wb, `Bloomeor_Customers_${new Date().toISOString().split('T')[0]}.xlsx`);
+        showAlert('Success', 'Export process completed.');
+    }
+</script>
+
+<script>
+    // Update Topbar Business Name
+    document.addEventListener('DOMContentLoaded', () => {
+        const bizName = localStorage.getItem('bloomeor_biz_name') || 'Bloomeor Retail';
+        const bizElements = document.querySelectorAll('#topbarBizName');
+        bizElements.forEach(el => el.innerText = bizName);
+    });
+</script>
+</body>
+</html>

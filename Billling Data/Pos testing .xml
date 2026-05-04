@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Bloomeor POS Billing Log -->
+<!-- This file is auto-managed by the POS system. Do not edit manually. -->
+<!-- Connect this file from POS → Sidebar → "Connect XML File" -->
+<billingData shop="Bloomeor POS" generated="2026-05-03T00:00:00.000Z">
+  <!-- Sales will be auto-saved here after each transaction -->
+</billingData>
